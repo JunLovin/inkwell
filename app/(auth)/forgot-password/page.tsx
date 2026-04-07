@@ -130,7 +130,7 @@ export default function ForgotPasswordPage() {
 
         <p className="text-center text-zinc-600 text-xs">
           <Link
-            href="/auth/login"
+            href="/login"
             className="flex items-center justify-center gap-1.5 text-zinc-500 hover:text-white transition-colors duration-200"
           >
             <ArrowLeft size={12} />
