@@ -11,6 +11,8 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@auth/core": "0.37.0",
+    "@convex-dev/auth": "^0.0.91",
     "@hookform/resolvers": "^5.2.2",
     "@lexical/code": "^0.42.0",
     "@lexical/history": "^0.42.0",

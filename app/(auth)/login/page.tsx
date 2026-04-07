@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuthActions } from "@convex-dev/auth/react";
 import gsap from "gsap";
 
 import { loginSchema, type LoginSchema } from "@/shared/schemas/login.schema";
@@ -12,6 +13,8 @@ import { Field } from "@/shared/components/ui/Field";
 import { Button, Divider, Input } from "@/shared/components/ui";
 
 export default function LoginPage() {
+  const { signIn } = useAuthActions();
+
   const [showPassword, setShowPassword] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,9 +66,7 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginSchema) => {
     try {
-      // TODO: Implement actual login logic here
-      await new Promise((r) => setTimeout(r, 1500));
-      console.log(data);
+      await signIn("password", data);
     } catch (error) {
       console.error("Login failed:", error);
     }
@@ -111,6 +112,7 @@ export default function LoginPage() {
             <Input
               {...register("password")}
               type={showPassword ? "text" : "password"}
+              autoComplete="off"
               placeholder="••••••••"
             />
             <button
@@ -121,6 +123,12 @@ export default function LoginPage() {
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
+          <input
+            {...register("flow")}
+            name="flow"
+            type="hidden"
+            value="signIn"
+          />
         </Field>
 
         <Button
