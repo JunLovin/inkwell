@@ -11,9 +11,15 @@ import gsap from "gsap";
 import { loginSchema, type LoginSchema } from "@/shared/schemas/login.schema";
 import { Field } from "@/shared/components/ui/Field";
 import { Button, Divider, Input } from "@/shared/components/ui";
+import { useToast } from "@/lib/hooks/useToast";
+import { useRouter } from "next/navigation";
+import { useConvexAuth } from "convex/react";
 
 export default function LoginPage() {
   const { signIn } = useAuthActions();
+  const { toast } = useToast();
+  const { isAuthenticated } = useConvexAuth();
+  const router = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -31,6 +37,13 @@ export default function LoginPage() {
   } = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
   });
+
+  // INFO: Auto login redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, router]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -67,8 +80,18 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginSchema) => {
     try {
       await signIn("password", data);
+
+      toast.success({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
+      router.push("/dashboard");
     } catch (error) {
       console.error("Login failed:", error);
+      toast.error({
+        title: "Login failed",
+        description: "Check your credentials or try again later",
+      });
     }
   };
 

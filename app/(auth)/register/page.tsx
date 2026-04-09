@@ -13,9 +13,13 @@ import {
   RegisterSchema,
 } from "@/shared/schemas/register.schema";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { useToast } from "@/lib/hooks/useToast";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const { signIn } = useAuthActions();
+  const { toast } = useToast();
+  const router = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -70,8 +74,11 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterSchema) => {
     try {
       await signIn("password", data);
+      toast.success("Account created successfully! You are now signed in.");
+      router.push("/dashboard");
     } catch (error) {
       console.error("Registration error:", error);
+      toast.error("Failed to create account. Please try again.");
     }
   };
 

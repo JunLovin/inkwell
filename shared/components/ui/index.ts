@@ -8,3 +8,4 @@ export { Divider } from "./divider";
 export { Avatar } from "./avatar";
 export { Card } from "./card";
 export { Spinner } from "./spinner";
+export { Toast } from "./toast";
