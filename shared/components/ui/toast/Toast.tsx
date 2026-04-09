@@ -118,7 +118,7 @@ function ToastItem({ toast }: { toast: Toast }) {
       clearTimeout(exitTimer);
       tl.kill();
     };
-  }, [duration, handleRemove]);
+  }, [duration]);
 
   return (
     <div
@@ -150,6 +150,7 @@ function ToastItem({ toast }: { toast: Toast }) {
       <button
         type="button"
         onClick={handleRemove}
+        aria-label="Close Notification"
         className="shrink-0 mt-0.5 text-zinc-600 hover:text-zinc-400 transition-colors duration-150 cursor-pointer"
       >
         <X size={14} />

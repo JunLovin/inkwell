@@ -7,9 +7,8 @@ import {
 import counterReducer from "./slices/counter/counterSlice";
 import configReducer from "./slices/config/configSlice";
 
-import { persistReducer } from "redux-persist";
+import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import persistStore from "redux-persist/es/persistStore";
 
 const rootReducer = combineReducers({
   counter: counterReducer,

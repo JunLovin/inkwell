@@ -17,7 +17,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   if (isLoading || !isAuthenticated) {
     return (
       <div className="flex items-center justify-center h-dvh">
-        <p className="text-zinc-500">Loading...</p>
+        <p className="text-zinc-500">Redirecting...</p>
       </div>
     );
   }
