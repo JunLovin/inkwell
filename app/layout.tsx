@@ -3,7 +3,6 @@ import { Geist, Geist_Mono, Host_Grotesk } from "next/font/google";
 import { ReactLenis } from "lenis/react";
 import "./globals.css";
 import { ConvexClientProvider } from "@/shared/components/providers/convex-client-provider";
-import StoreProvider from "@/shared/components/providers/store-provider";
 import { Toast } from "@/shared/components/ui";
 
 const geistSans = Geist({
@@ -38,11 +37,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ConvexClientProvider>
-          <StoreProvider>
-            <ReactLenis root />
-            {children}
-            <Toast />
-          </StoreProvider>
+          <ReactLenis root />
+          {children}
+          <Toast />
         </ConvexClientProvider>
       </body>
     </html>

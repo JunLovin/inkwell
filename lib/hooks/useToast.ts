@@ -1,45 +1,36 @@
-import { addToast, removeToast } from "@/lib/store/slices/config/configSlice";
+import { useToastStore } from "@/lib/stores/toast.store";
 import type { ToastVariant } from "@/lib/types/toast.types";
-import { AppDispatch, store } from "@/lib/store/store";
-import { useDispatch } from "react-redux";
 
-export type ToastOptions = {
+type ToastOptions = {
   title: string;
   description?: string;
   duration?: number;
 };
 
-function generateId() {
-  return Math.random().toString(36).slice(2);
+function resolve(options: ToastOptions | string): ToastOptions {
+  return typeof options === "string" ? { title: options } : options;
 }
 
-function buildToast(variant: ToastVariant, options: ToastOptions | string) {
-  const resolved = typeof options === "string" ? { title: options } : options;
-  return { id: generateId(), variant, ...resolved };
+function buildMethod(variant: ToastVariant) {
+  return (options: ToastOptions | string) =>
+    useToastStore.getState().add({ ...resolve(options), variant });
 }
 
 export const toast = {
-  default: (options: ToastOptions | string) =>
-    store.dispatch(addToast(buildToast("default", options))),
-  success: (options: ToastOptions | string) =>
-    store.dispatch(addToast(buildToast("success", options))),
-  danger: (options: ToastOptions | string) =>
-    store.dispatch(addToast(buildToast("danger", options))),
-  error: (options: ToastOptions | string) =>
-    store.dispatch(addToast(buildToast("danger", options))),
-  warning: (options: ToastOptions | string) =>
-    store.dispatch(addToast(buildToast("warning", options))),
-  info: (options: ToastOptions | string) =>
-    store.dispatch(addToast(buildToast("info", options))),
+  default: buildMethod("default"),
+  success: buildMethod("success"),
+  danger: buildMethod("danger"),
+  error: buildMethod("danger"),
+  warning: buildMethod("warning"),
+  info: buildMethod("info"),
 };
 
 export function useToast() {
-  const dispatch = useDispatch<AppDispatch>();
+  const { add, remove } = useToastStore();
 
   function createMethod(variant: ToastVariant) {
-    return (options: ToastOptions | string) => {
-      dispatch(addToast(buildToast(variant, options)));
-    };
+    return (options: ToastOptions | string) =>
+      add({ ...resolve(options), variant });
   }
 
   return {
@@ -51,6 +42,6 @@ export function useToast() {
       warning: createMethod("warning"),
       info: createMethod("info"),
     },
-    remove: (id: string) => dispatch(removeToast(id)),
+    remove,
   };
 }
