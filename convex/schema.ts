@@ -9,6 +9,7 @@ const schema = defineSchema({
     slug: v.string(),
     title: v.string(),
     content: v.optional(v.string()),
+    preview: v.optional(v.string()),
     isDeleted: v.optional(v.boolean()),
     isArchived: v.optional(v.boolean()),
     isFavorite: v.optional(v.boolean()),

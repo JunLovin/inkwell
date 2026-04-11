@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "convex/react";
-import { Loader, Sidenav } from "../ui";
+import { Sidenav } from "../ui";
 import { Archive, FileText, Grid, Star } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
@@ -13,17 +13,32 @@ export default function DashboardSidenav() {
   const router = useRouter();
 
   const user = useQuery(api.myFunctions.getUserInfo);
+  const notes = useQuery(api.myFunctions.getNotes, {});
 
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  if (!user || !notes) {
+    return (
+      <div className="flex items-center justify-center h-dvh w-3xs">
+        <span className="text-zinc-500 text-xs text-center mx-auto">
+          loading...
+        </span>
+      </div>
+    );
+  }
 
   const sidenavItems = [
     {
       id: "dashboard",
       label: "Dashboard",
       icon: <Grid size={14} />,
-      badge: 12,
     },
-    { id: "notes", label: "Notes", icon: <FileText size={14} />, badge: 12 },
+    {
+      id: "notes",
+      label: "Notes",
+      icon: <FileText size={14} />,
+      badge: notes.length,
+    },
     { id: "favorite", label: "Favorite", icon: <Star size={14} />, badge: 12 },
     {
       id: "archived",
@@ -32,14 +47,6 @@ export default function DashboardSidenav() {
       badge: 12,
     },
   ];
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center h-dvh">
-        <Loader variant="circle" size="lg" />
-      </div>
-    );
-  }
 
   return (
     <Sidenav
