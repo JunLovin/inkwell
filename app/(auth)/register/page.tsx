@@ -73,7 +73,12 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterSchema) => {
     try {
-      await signIn("password", data);
+      await signIn("password", {
+        email: data.email,
+        name: data.name,
+        password: data.password,
+        flow: data.flow,
+      });
       toast.success("Account created successfully! You are now signed in.");
       router.push("/dashboard");
     } catch (error) {

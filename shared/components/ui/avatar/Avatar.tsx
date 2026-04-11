@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 type AvatarSize = "sm" | "md" | "lg";
 
 type AvatarProps = {
@@ -40,7 +42,7 @@ export function Avatar({ src, name, size = "md", online }: AvatarProps) {
         `}
       >
         {src ? (
-          <img
+          <Image
             src={src}
             alt={name ?? "avatar"}
             className="w-full h-full object-cover"

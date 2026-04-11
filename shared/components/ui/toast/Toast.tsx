@@ -11,10 +11,8 @@ import {
 } from "lucide-react";
 import gsap from "gsap";
 
-import { removeToast } from "@/lib/store/slices/config/configSlice";
+import { useToastStore } from "@/lib/stores/toast.store";
 import type { Toast, ToastVariant } from "@/lib/types/toast.types";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/lib/store/store";
 
 const DEFAULT_DURATION = 4000;
 
@@ -66,7 +64,7 @@ const variantConfig: Record<
 };
 
 function ToastItem({ toast }: { toast: Toast }) {
-  const dispatch = useDispatch<AppDispatch>();
+  const remove = useToastStore((s) => s.remove);
   const ref = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
   const variant = toast.variant ?? "default";
@@ -82,9 +80,7 @@ function ToastItem({ toast }: { toast: Toast }) {
       filter: "blur(4px)",
       duration: 0.25,
       ease: "power2.in",
-      onComplete: () => {
-        dispatch(removeToast(toast.id));
-      },
+      onComplete: () => remove(toast.id),
     });
   };
 
@@ -150,7 +146,6 @@ function ToastItem({ toast }: { toast: Toast }) {
       <button
         type="button"
         onClick={handleRemove}
-        aria-label="Close Notification"
         className="shrink-0 mt-0.5 text-zinc-600 hover:text-zinc-400 transition-colors duration-150 cursor-pointer"
       >
         <X size={14} />
@@ -160,12 +155,10 @@ function ToastItem({ toast }: { toast: Toast }) {
 }
 
 export function Toast() {
-  const configState = useSelector((state: RootState) => state.config);
-
-  const toasts = configState.toasts;
+  const toasts = useToastStore((s) => s.toasts);
 
   return (
-    <div className="fixed bottom-6 right-6 z-100 flex flex-col gap-2.5 items-end">
+    <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-2.5 items-end">
       {toasts.map((t) => (
         <ToastItem key={t.id} toast={t} />
       ))}
