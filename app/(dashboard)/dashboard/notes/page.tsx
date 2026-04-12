@@ -24,7 +24,6 @@ export default function NotesPage() {
 
   const [draftTitle, setDraftTitle] = useState("Untitled");
   const [draftContent, setDraftContent] = useState("");
-  const [draftPreview, setDraftPreview] = useState("");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -32,18 +31,21 @@ export default function NotesPage() {
   const notes = useQuery(api.myFunctions.getNotes, {});
   const createNote = useMutation(api.myFunctions.addNote);
 
+  // TODO: Handle stale state problem to local problem
+
   const handleOpenNoteDialog = () => {
     setDraftTitle("");
     setDraftContent("");
-    setDraftPreview("");
     setSaveStatus("idle");
     setOpenNoteDialog(true);
-    console.log(draftPreview); // INFO: for test only
   };
 
   const handleCloseNoteDialog = () => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    setSaveStatus("idle");
     setOpenNoteDialog(false);
+    setDraftTitle("Untitled");
+    setDraftContent("");
   };
 
   const handleCreateNote = useCallback(async () => {
@@ -71,17 +73,13 @@ export default function NotesPage() {
     }
   }, [draftTitle, draftContent, createNote, toast]);
 
-  const handleContentChange = useCallback(
-    (content: string, preview: string) => {
-      setDraftContent(content);
-      setDraftPreview(preview);
-    },
-    [],
-  );
+  const handleContentChange = useCallback((content: string) => {
+    setDraftContent(content);
+  }, []);
 
   const filteredNotes: Note[] = useMemo(() => {
     if (!notes) return [];
-    return [...notes]
+    return [...notes.filter((n) => !n.isDeleted)]
       .filter((note) => note.title.toLowerCase().includes(search.toLowerCase()))
       .sort((a, b) => {
         const aTime = a.updatedAt ?? a._creationTime;
@@ -135,7 +133,7 @@ export default function NotesPage() {
           <button
             type="button"
             onClick={() => setSortOrder((o) => (o === "desc" ? "asc" : "desc"))}
-            className="flex items-center gap-2 px-3 h-[46px] rounded-2xl border border-zinc-800 bg-zinc-800/40 hover:border-zinc-700 hover:bg-zinc-800/60 text-zinc-400 hover:text-zinc-200 text-xs transition-all duration-200 shrink-0 cursor-pointer"
+            className="flex items-center gap-2 px-3 h-11.5 rounded-2xl border border-zinc-800 bg-zinc-800/40 hover:border-zinc-700 hover:bg-zinc-800/60 text-zinc-400 hover:text-zinc-200 text-xs transition-all duration-200 shrink-0 cursor-pointer"
           >
             {sortOrder === "desc" ? (
               <SortDesc size={15} />

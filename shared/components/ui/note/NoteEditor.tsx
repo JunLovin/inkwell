@@ -10,13 +10,16 @@ import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
-import { HeadingNode, QuoteNode } from "@lexical/rich-text";
-import { ListNode, ListItemNode } from "@lexical/list";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
-import { CodeNode, CodeHighlightNode } from "@lexical/code";
-import { $getRoot } from "lexical";
+import { TRANSFORMERS } from "@lexical/markdown";
+import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
 import type { EditorState } from "lexical";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { CodeNode } from "@lexical/code";
+import { LinkNode } from "@lexical/link";
+import { ListNode, ListItemNode } from "@lexical/list";
+import { HeadingNode, QuoteNode } from "@lexical/rich-text";
+import { HorizontalRuleNode } from "@lexical/react/LexicalHorizontalRuleNode";
 
 import { Divider } from "@/shared/components/ui";
 
@@ -26,7 +29,7 @@ type NoteEditorProps = {
   initialTitle?: string;
   initialContent?: string;
   onTitleChange?: (title: string) => void;
-  onContentChange?: (content: string, preview: string) => void;
+  onContentChange?: (content: string) => void;
   onClose?: () => void;
   saveStatus?: SaveStatus;
 };
@@ -61,12 +64,13 @@ const editorConfig: InitialConfigType = {
   theme: editorTheme,
   onError: (error: Error) => console.error(error),
   nodes: [
+    HorizontalRuleNode,
+    CodeNode,
     HeadingNode,
-    QuoteNode,
+    LinkNode,
     ListNode,
     ListItemNode,
-    CodeNode,
-    CodeHighlightNode,
+    QuoteNode,
   ],
 };
 
@@ -78,10 +82,11 @@ function RestoreContentPlugin({ content }: { content: string }) {
     if (restored.current || !content) return;
     try {
       const state = editor.parseEditorState(content);
+      console.log("State (JSON to text) ->:", state);
       editor.setEditorState(state);
       restored.current = true;
     } catch {
-      // not valid JSON — leave editor empty
+      // not valid JSON - leave editor empty
     }
   }, [editor, content]);
 
@@ -120,11 +125,11 @@ export function NoteEditor({
   };
 
   const handleEditorChange = (editorState: EditorState) => {
-    const json = editorState.read(() => $getRoot().getTextContent());
-    const preview = editorState.read(() =>
-      $getRoot().getTextContent().slice(0, 150),
-    );
-    onContentChange?.(json, preview);
+    const json = JSON.stringify(editorState.toJSON());
+    // const preview = editorState.read(() =>
+    //   $getRoot().getTextContent().slice(0, 150),
+    // );
+    onContentChange?.(json);
   };
 
   return (
@@ -150,7 +155,7 @@ export function NoteEditor({
           onKeyDown={handleTitleKeyDown}
           placeholder="Untitled"
           rows={1}
-          className="w-full z-10 text-white text-3xl font-semibold tracking-tight placeholder:text-zinc-500 outline-none resize-none leading-tight overflow-hidden"
+          className="w-full z-10 !text-white outline-none text-3xl font-semibold tracking-tight placeholder:text-zinc-500 leading-tight"
         />
       </div>
 
@@ -163,15 +168,20 @@ export function NoteEditor({
           <div className="relative">
             <RichTextPlugin
               contentEditable={
-                <ContentEditable className="outline-none min-h-[200px]" />
-              }
-              placeholder={
-                <div className="absolute top-0 left-0 text-zinc-700 text-sm pointer-events-none select-none">
-                  Start writing... use # for headings, - for lists, ``` for code
-                </div>
+                <ContentEditable
+                  aria-placeholder="Enter some text"
+                  className="outline-none min-h-50"
+                  placeholder={
+                    <div className="absolute top-0 left-0 text-zinc-700 text-sm pointer-events-none select-none">
+                      Start writing... use # for headings, - for lists, ``` for
+                      code
+                    </div>
+                  }
+                />
               }
               ErrorBoundary={LexicalErrorBoundary}
             />
+            <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
             <HistoryPlugin />
             <ListPlugin />
             <TabIndentationPlugin />

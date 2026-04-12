@@ -12,6 +12,7 @@ export default function DashboardLayout({
         <aside>
           <DashboardSidenav />
         </aside>
+        {/* TODO: Solve layout scroll problem */}
         <div className="flex-1 p-4 h-full">{children}</div>
       </main>
     </AuthGuard>

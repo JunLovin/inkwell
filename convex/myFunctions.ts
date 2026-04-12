@@ -47,10 +47,17 @@ export const addNote = mutation({
       throw new Error("Not authenticated");
     }
 
+    let preview: string = content;
+
+    if (content.length > 150) {
+      preview = content.substring(0, 150);
+    }
+
     const note = {
       authorId: userId,
-      slug: `${title.toLowerCase().replace(/\s+/g, "-").substring(0, 5)}`,
       title,
+      slug: `${title.toLowerCase().replace(/\s+/g, "-").substring(0, 5)}`,
+      preview,
       content,
       isDeleted: false,
       isArchived: false,
