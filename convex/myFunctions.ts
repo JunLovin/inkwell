@@ -47,10 +47,17 @@ export const addNote = mutation({
       throw new Error("Not authenticated");
     }
 
+    let preview: string = content;
+
+    if (content.length > 150) {
+      preview = content.substring(0, 150);
+    }
+
     const note = {
       authorId: userId,
-      slug: `${title.toLowerCase().replace(/\s+/g, "-").substring(0, 5)}`,
       title,
+      slug: `${title.toLowerCase().replace(/\s+/g, "-").substring(0, 5)}`,
+      preview,
       content,
       isDeleted: false,
       isArchived: false,
@@ -61,6 +68,109 @@ export const addNote = mutation({
     const id = await ctx.db.insert("notes", note);
 
     return { id, ...note };
+  },
+});
+
+export const updateNote = mutation({
+  args: {
+    id: v.id("notes"),
+    title: v.optional(v.string()),
+    content: v.optional(v.string()),
+    preview: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { id, title, content, preview } = args;
+
+    const userId = await getAuthUserId(ctx);
+
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const note = await ctx.db.get("notes", id);
+
+    if (!note || note.authorId !== userId) {
+      throw new Error("Note not found or not authorized");
+    }
+
+    const updatedNote = {
+      ...note,
+      title: title ?? note.title,
+      content: content ?? note.content,
+      preview: preview ?? note.preview,
+      updatedAt: Date.now(),
+    };
+
+    await ctx.db.patch("notes", id, updatedNote);
+  },
+});
+
+export const deleteNote = mutation({
+  args: {
+    id: v.id("notes"),
+  },
+  handler: async (ctx, args) => {
+    const { id } = args;
+
+    const userId = await getAuthUserId(ctx);
+
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const note = await ctx.db.get("notes", id);
+
+    if (!note || note.authorId !== userId) {
+      throw new Error("Note not found or not authorized");
+    }
+
+    await ctx.db.patch("notes", id, { isDeleted: true });
+  },
+});
+
+export const archiveNote = mutation({
+  args: {
+    id: v.id("notes"),
+  },
+  handler: async (ctx, args) => {
+    const { id } = args;
+
+    const userId = await getAuthUserId(ctx);
+
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const note = await ctx.db.get("notes", id);
+
+    if (!note || note.authorId !== userId) {
+      throw new Error("Note not found or not authorized");
+    }
+
+    await ctx.db.patch("notes", id, { isArchived: true });
+  },
+});
+
+export const markNoteAsFavorite = mutation({
+  args: {
+    id: v.id("notes"),
+  },
+  handler: async (ctx, args) => {
+    const { id } = args;
+
+    const userId = await getAuthUserId(ctx);
+
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const note = await ctx.db.get("notes", id);
+
+    if (!note || note.authorId !== userId) {
+      throw new Error("Note not found or not authorized");
+    }
+
+    await ctx.db.patch("notes", id, { isFavorite: true });
   },
 });
 

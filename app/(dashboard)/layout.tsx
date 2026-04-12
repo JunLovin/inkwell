@@ -8,11 +8,12 @@ export default function DashboardLayout({
 }) {
   return (
     <AuthGuard>
-      <main className="flex h-dvh w-full overflow-y-auto font-host">
+      <main className="flex h-dvh w-full font-host overflow-hidden">
         <aside>
           <DashboardSidenav />
         </aside>
-        <div className="flex-1 p-4">{children}</div>
+        {/* TODO: Solve layout scroll problem */}
+        <div className="flex-1 p-4 h-full">{children}</div>
       </main>
     </AuthGuard>
   );
