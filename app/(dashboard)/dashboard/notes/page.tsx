@@ -22,7 +22,7 @@ export default function NotesPage() {
   const [search, setSearch] = useState("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
 
-  const [draftTitle, setDraftTitle] = useState("Untitled");
+  const [draftTitle, setDraftTitle] = useState("");
   const [draftContent, setDraftContent] = useState("");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
 
@@ -53,7 +53,6 @@ export default function NotesPage() {
 
     try {
       setSaveStatus("saving");
-      console.log("Title:", title, "Content (JSON):", draftContent);
       await createNote({
         title,
         content: draftContent,

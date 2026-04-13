@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import type { InitialConfigType } from "@lexical/react/LexicalComposer";
@@ -13,7 +13,7 @@ import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { TRANSFORMERS } from "@lexical/markdown";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
-import type { EditorState } from "lexical";
+import { ParagraphNode, type EditorState } from "lexical";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { CodeNode } from "@lexical/code";
 import { LinkNode } from "@lexical/link";
@@ -34,7 +34,7 @@ type NoteEditorProps = {
   saveStatus?: SaveStatus;
 };
 
-const editorTheme = {
+export const editorTheme = {
   root: "outline-none text-zinc-300 text-sm leading-relaxed",
   paragraph: "mb-2",
   heading: {
@@ -59,11 +59,12 @@ const editorTheme = {
   code: "block font-mono text-xs bg-zinc-800/80 border border-zinc-700/60 text-zinc-300 p-4 rounded-xl my-3 overflow-x-auto",
 };
 
-const editorConfig: InitialConfigType = {
+export const editorConfig: InitialConfigType = {
   namespace: "inkwell-note-editor",
   theme: editorTheme,
   onError: (error: Error) => console.error(error),
   nodes: [
+    ParagraphNode,
     HorizontalRuleNode,
     CodeNode,
     HeadingNode,
@@ -82,7 +83,6 @@ function RestoreContentPlugin({ content }: { content: string }) {
     if (restored.current || !content) return;
     try {
       const state = editor.parseEditorState(content);
-      console.log("State (JSON to text) ->:", state);
       editor.setEditorState(state);
       restored.current = true;
     } catch {
@@ -94,30 +94,14 @@ function RestoreContentPlugin({ content }: { content: string }) {
 }
 
 export function NoteEditor({
-  initialTitle = "Untitled",
+  initialTitle,
   initialContent = "",
   onTitleChange,
   onContentChange,
   onClose,
 }: NoteEditorProps) {
-  const [title, setTitle] = useState(initialTitle);
-  const titleRef = useRef<HTMLTextAreaElement>(null);
-
-  const autoResizeTitle = useCallback(() => {
-    const el = titleRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${el.scrollHeight}px`;
-  }, []);
-
-  useEffect(() => {
-    autoResizeTitle();
-  }, [autoResizeTitle]);
-
   const handleTitleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setTitle(e.target.value);
     onTitleChange?.(e.target.value);
-    autoResizeTitle();
   };
 
   const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -147,15 +131,13 @@ export function NoteEditor({
         )}
       </div>
 
-      <div className="px-8 pb-3">
+      <div className="px-8">
         <textarea
-          ref={titleRef}
-          value={title}
+          value={initialTitle}
           onChange={handleTitleChange}
           onKeyDown={handleTitleKeyDown}
           placeholder="Untitled"
-          rows={1}
-          className="w-full z-10 !text-white outline-none text-3xl font-semibold tracking-tight placeholder:text-zinc-500 leading-tight"
+          className="w-full z-10 !text-white min-h-auto outline-none resize-none overflow-y-hidden overflow-x-auto max-h-40 text-nowrap text-3xl font-semibold tracking-tight placeholder:text-zinc-500 leading-tight"
         />
       </div>
 

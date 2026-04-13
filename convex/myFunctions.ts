@@ -34,6 +34,31 @@ export const getNotes = query({
   },
 });
 
+export const getNote = query({
+  args: {
+    slug: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { slug } = args;
+    const userId = await getAuthUserId(ctx);
+
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const note = await ctx.db
+      .query("notes")
+      .filter((q) => q.eq(q.field("slug"), slug))
+      .first();
+
+    if (!note) {
+      throw new Error("Note not found or not authorized");
+    }
+
+    return note;
+  },
+});
+
 export const addNote = mutation({
   args: {
     title: v.string(),
@@ -56,7 +81,7 @@ export const addNote = mutation({
     const note = {
       authorId: userId,
       title,
-      slug: `${title.toLowerCase().replace(/\s+/g, "-").substring(0, 5)}`,
+      slug: `${title.toLowerCase().replace(/\s+/g, "-")}`,
       preview,
       content,
       isDeleted: false,
