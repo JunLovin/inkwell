@@ -1,10 +1,6 @@
-import { getAuthUserId } from "@convex-dev/auth/server";
-import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-
-// TODO: Improve this file separating concerns and changing the name of the functions
-
-// INFO: Notes
+import { mutation, query } from "./_generated/server";
+import { getAuthUserId } from "@convex-dev/auth/server";
 
 export const getNotes = query({
   args: {
@@ -46,10 +42,9 @@ export const getNote = query({
       throw new Error("Not authenticated");
     }
 
-    const note = await ctx.db
-      .query("notes")
-      .filter((q) => q.eq(q.field("slug"), slug))
-      .first();
+    const notes = await ctx.db.query("notes").collect();
+
+    const note = notes.filter((n) => n.slug === slug)[0];
 
     if (!note) {
       throw new Error("Note not found or not authorized");
@@ -196,23 +191,5 @@ export const markNoteAsFavorite = mutation({
     }
 
     await ctx.db.patch("notes", id, { isFavorite: true });
-  },
-});
-
-// INFO: Auth
-
-export const getUserInfo = query({
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
-    const identity = await ctx.db.get("users", userId);
-
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
-    return identity;
   },
 });

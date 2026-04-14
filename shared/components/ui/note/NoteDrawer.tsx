@@ -41,7 +41,7 @@ export function NoteDrawer({
   const { toast } = useToast();
   const router = useRouter();
 
-  const deleteNote = useMutation(api.myFunctions.deleteNote);
+  const deleteNote = useMutation(api.notes.deleteNote);
 
   if (!note) return null;
 

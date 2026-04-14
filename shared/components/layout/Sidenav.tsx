@@ -12,8 +12,8 @@ export default function DashboardSidenav() {
   const { signOut } = useAuthActions();
   const router = useRouter();
 
-  const user = useQuery(api.myFunctions.getUserInfo);
-  const notes = useQuery(api.myFunctions.getNotes, {});
+  const user = useQuery(api.users.getUserInfo);
+  const notes = useQuery(api.notes.getNotes, {});
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
