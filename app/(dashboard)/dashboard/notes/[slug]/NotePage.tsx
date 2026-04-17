@@ -31,12 +31,12 @@ interface Props {
 }
 
 export default function NotePage({ slug }: Props) {
-  const note = useQuery(api.myFunctions.getNote, { slug });
+  const note = useQuery(api.notes.getNote, { slug });
 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [titleDraft, setTitleDraft] = useState(note?.title || "");
 
-  const updateNote = useMutation(api.myFunctions.updateNote);
+  const updateNote = useMutation(api.notes.updateNote);
 
   const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
 

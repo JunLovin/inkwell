@@ -28,8 +28,8 @@ export default function NotesPage() {
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const notes = useQuery(api.myFunctions.getNotes, {});
-  const createNote = useMutation(api.myFunctions.addNote);
+  const notes = useQuery(api.notes.getNotes, {});
+  const createNote = useMutation(api.notes.addNote);
 
   // TODO: Handle stale state problem to local problem
 

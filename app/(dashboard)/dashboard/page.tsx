@@ -6,7 +6,7 @@ import { useQuery } from "convex/react";
 import { useMemo } from "react";
 
 export default function DashboardPage() {
-  const notes = useQuery(api.myFunctions.getNotes, {});
+  const notes = useQuery(api.notes.getNotes, {});
 
   const stats = useMemo(() => {
     if (!notes) return { total: 0, favorite: 0, archived: 0 };
