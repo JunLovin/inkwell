@@ -1,3 +1,4 @@
+import { ReactLenis } from "lenis/react";
 import Header from "@/shared/components/layout/Header";
 
 export default function RootLayout({
@@ -8,6 +9,7 @@ export default function RootLayout({
   return (
     <>
       <Header />
+      <ReactLenis root />
       {children}
     </>
   );

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Host_Grotesk } from "next/font/google";
-import { ReactLenis } from "lenis/react";
 import "./globals.css";
 import { ConvexClientProvider } from "@/shared/components/providers/convex-client-provider";
 import { Toast } from "@/shared/components/ui";
@@ -35,9 +34,8 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${hostGrotesk.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="h-full flex flex-col">
         <ConvexClientProvider>
-          <ReactLenis root />
           {children}
           <Toast />
         </ConvexClientProvider>
