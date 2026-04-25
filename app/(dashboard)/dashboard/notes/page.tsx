@@ -78,7 +78,7 @@ export default function NotesPage() {
 
   const filteredNotes: Note[] = useMemo(() => {
     if (!notes) return [];
-    return [...notes.filter((n) => !n.isDeleted)]
+    return [...notes.filter((n) => !n.isDeleted && !n.isArchived)]
       .filter((note) => note.title.toLowerCase().includes(search.toLowerCase()))
       .sort((a, b) => {
         const aTime = a.updatedAt ?? a._creationTime;
