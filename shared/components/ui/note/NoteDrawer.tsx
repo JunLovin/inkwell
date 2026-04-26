@@ -13,8 +13,7 @@ import {
   InitialConfigType,
   LexicalComposer,
 } from "@lexical/react/LexicalComposer";
-import { editorTheme } from "./NoteEditor";
-
+import { editorTheme, SaveStatus } from "./NoteEditor";
 import { HorizontalRuleNode } from "@lexical/react/LexicalHorizontalRuleNode";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { ListNode, ListItemNode } from "@lexical/list";
@@ -24,24 +23,36 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { ParagraphNode } from "lexical";
+import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
+import { TRANSFORMERS } from "@lexical/markdown";
+import { useEffect, useRef, useState } from "react";
+import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 
 type NoteDrawerProps = {
   note: Note | null;
   open: boolean;
   onClose: () => void;
-  onArchive?: (id: string) => void;
 };
 
-export function NoteDrawer({
-  note,
-  open,
-  onClose,
-  onArchive,
-}: NoteDrawerProps) {
+export function NoteDrawer({ note, open, onClose }: NoteDrawerProps) {
   const { toast } = useToast();
   const router = useRouter();
 
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+
+  const archiveNote = useMutation(api.notes.archiveNote);
+  const updateNote = useMutation(api.notes.updateNote);
   const deleteNote = useMutation(api.notes.deleteNote);
+
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
 
   if (!note) return null;
 
@@ -50,8 +61,7 @@ export function NoteDrawer({
       id: "archive",
       label: "Archive note",
       onClick: () => {
-        onArchive?.(note._id);
-        onClose();
+        handleArchiveNote();
       },
     },
     {
@@ -88,6 +98,24 @@ export function NoteDrawer({
     }
   };
 
+  const handleArchiveNote = async () => {
+    try {
+      if (!note) return;
+      await archiveNote({ id: note._id });
+      onClose();
+      toast.success({
+        title: "Note archived successfull",
+        description: "The note has been archived.",
+      });
+    } catch (error) {
+      console.error("Failed to archive note:", error);
+      toast.error({
+        title: "Failed to archive note",
+        description: "Something went wrong. Try again later.",
+      });
+    }
+  };
+
   const editorConfig: InitialConfigType = {
     namespace: "inkwell-note-editor",
     theme: editorTheme,
@@ -103,6 +131,28 @@ export function NoteDrawer({
       ListItemNode,
       QuoteNode,
     ],
+  };
+
+  const handleUpdateNote = async (json: string) => {
+    try {
+      setSaveStatus("saving");
+
+      await updateNote({
+        id: note._id,
+        title: note.title,
+        content: json,
+      });
+
+      setSaveStatus("saved");
+    } catch (error) {
+      console.error("Failed to update note:", error);
+      toast.error({
+        title: "Failed to update note",
+        description: "Something went wrong, please try again later.",
+      });
+    } finally {
+      setSaveStatus("idle");
+    }
   };
 
   return (
@@ -144,9 +194,14 @@ export function NoteDrawer({
           </div>
 
           <div className="px-5 py-4 border-b border-zinc-800 space-y-3">
-            <h2 className="text-white text-lg font-medium tracking-tight">
-              {note.title || "Untitled"}
-            </h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-white text-lg font-medium tracking-tight">
+                {note.title || "Untitled"}
+              </h2>
+              <span className="text-zinc-600 font-semibold text-sm select-none">
+                {saveStatus}
+              </span>
+            </div>
 
             <div className="flex flex-wrap gap-3">
               {note.updatedAt && (
@@ -168,6 +223,20 @@ export function NoteDrawer({
               placeholder={null}
               ErrorBoundary={LexicalErrorBoundary}
             />
+            <OnChangePlugin
+              onChange={(editorState) => {
+                const json = JSON.stringify(editorState.toJSON());
+
+                if (timerRef.current) {
+                  clearTimeout(timerRef.current);
+                }
+
+                timerRef.current = setTimeout(() => {
+                  handleUpdateNote(json);
+                }, 3000);
+              }}
+            />
+            <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
           </div>
         </div>
       </Drawer>
