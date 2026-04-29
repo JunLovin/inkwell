@@ -13,7 +13,7 @@ import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { TRANSFORMERS } from "@lexical/markdown";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
-import { ParagraphNode, type EditorState } from "lexical";
+import { $getRoot, ParagraphNode, type EditorState } from "lexical";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { CodeNode } from "@lexical/code";
 import { LinkNode } from "@lexical/link";
@@ -29,7 +29,7 @@ type NoteEditorProps = {
   initialTitle?: string;
   initialContent?: string;
   onTitleChange?: (title: string) => void;
-  onContentChange?: (content: string) => void;
+  onContentChange?: (content: string, preview: string) => void;
   onClose?: () => void;
   saveStatus?: SaveStatus;
 };
@@ -110,10 +110,10 @@ export function NoteEditor({
 
   const handleEditorChange = (editorState: EditorState) => {
     const json = JSON.stringify(editorState.toJSON());
-    // const preview = editorState.read(() =>
-    //   $getRoot().getTextContent().slice(0, 150),
-    // );
-    onContentChange?.(json);
+    const preview = editorState.read(() =>
+      $getRoot().getTextContent().slice(0, 150),
+    );
+    onContentChange?.(json, preview);
   };
 
   return (

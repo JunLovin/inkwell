@@ -58,19 +58,14 @@ export const addNote = mutation({
   args: {
     title: v.string(),
     content: v.string(),
+    preview: v.string()
   },
   handler: async (ctx, args) => {
-    const { title, content } = args;
+    const { title, content, preview } = args;
     const userId = await getAuthUserId(ctx);
 
     if (!userId) {
       throw new Error("Not authenticated");
-    }
-
-    let preview: string = content;
-
-    if (content.length > 150) {
-      preview = content.substring(0, 150);
     }
 
     const note = {
