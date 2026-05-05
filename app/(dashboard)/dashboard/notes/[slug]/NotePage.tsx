@@ -12,7 +12,6 @@ import {
 } from "@lexical/react/LexicalComposer";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { useMutation, useQuery } from "convex/react";
-
 import { HorizontalRuleNode } from "@lexical/react/LexicalHorizontalRuleNode";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { ListNode, ListItemNode } from "@lexical/list";
@@ -34,7 +33,7 @@ export default function NotePage({ slug }: Props) {
   const note = useQuery(api.notes.getNote, { slug });
 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
-  const [titleDraft, setTitleDraft] = useState(note?.title || "");
+  const [titleDraft, setTitleDraft] = useState("Untitled");
 
   const updateNote = useMutation(api.notes.updateNote);
 
@@ -48,6 +47,12 @@ export default function NotePage({ slug }: Props) {
     };
   }, []);
 
+  useEffect(() => {
+    if (note) {
+      setTitleDraft(note.title)
+    }
+  }, [note])
+
   if (!note) {
     return (
       <div className="flex items-center justify-center h-dvh">
@@ -55,6 +60,7 @@ export default function NotePage({ slug }: Props) {
       </div>
     );
   }
+
 
   const editorConfig: InitialConfigType = {
     namespace: "inkwell-note-viewer",
@@ -93,8 +99,8 @@ export default function NotePage({ slug }: Props) {
   return (
     <>
       <LexicalComposer initialConfig={editorConfig}>
-        <div className="w-full relative h-dvh overflow-y-auto">
-          <span className="fixed text-zinc-500 select-none right-4 top-4">
+        <div className="w-full relative h-dvh overflow-y-auto p-4">
+          <span className="fixed text-zinc-500 select-none right-4 top-8">
             {saveStatus}
           </span>
           <textarea

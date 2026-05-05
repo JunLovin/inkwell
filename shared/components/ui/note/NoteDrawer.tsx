@@ -40,9 +40,10 @@ export function NoteDrawer({ note, open, onClose }: NoteDrawerProps) {
 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
 
-  const archiveNote = useMutation(api.notes.archiveNote);
   const updateNote = useMutation(api.notes.updateNote);
+  const archiveNote = useMutation(api.notes.archiveNote);
   const deleteNote = useMutation(api.notes.deleteNote);
+  const markNoteAsFavorite = useMutation(api.notes.markNoteAsFavorite);
 
   const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
@@ -62,6 +63,13 @@ export function NoteDrawer({ note, open, onClose }: NoteDrawerProps) {
       label: "Archive note",
       onClick: () => {
         handleArchiveNote();
+      },
+    },
+    {
+      id: "favorite",
+      label: "Mark as favorite",
+      onClick: () => {
+        handleMarkAsFavorite();
       },
     },
     {
@@ -155,12 +163,25 @@ export function NoteDrawer({ note, open, onClose }: NoteDrawerProps) {
     }
   };
 
+  const handleMarkAsFavorite = async () => {
+    try {
+      await markNoteAsFavorite({ id: note._id })
+      onClose();
+    } catch (error) {
+      console.error("Failed to mark note as favorite:", error);
+      toast.error({
+        title: "Failed to mark as favorite",
+        description: "Something went wrong, please try again later."
+      });
+    }
+  }
+
   return (
     <LexicalComposer initialConfig={editorConfig}>
       <Drawer
         open={open}
         onClose={onClose}
-        title={note.title || "Untitled"}
+        title={note.title ?? "Untitled"}
         onExpand={() => router.push(`/dashboard/notes/${note.slug}`)}
       >
         <div className="flex flex-col h-full">

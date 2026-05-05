@@ -24,14 +24,13 @@ export default function NotesPage() {
 
   const [draftTitle, setDraftTitle] = useState("");
   const [draftContent, setDraftContent] = useState("");
+  const [draftPreview, setDraftPreview] = useState("");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const notes = useQuery(api.notes.getNotes, {});
   const createNote = useMutation(api.notes.addNote);
-
-  // TODO: Handle stale state problem to local problem
 
   const handleOpenNoteDialog = () => {
     setDraftTitle("");
@@ -50,12 +49,14 @@ export default function NotesPage() {
 
   const handleCreateNote = useCallback(async () => {
     const title = draftTitle.trim() || "Untitled";
+    const preview = draftPreview.trim();
 
     try {
       setSaveStatus("saving");
       await createNote({
         title,
         content: draftContent,
+        preview,
       });
       setSaveStatus("saved");
       toast.success({
@@ -72,13 +73,14 @@ export default function NotesPage() {
     }
   }, [draftTitle, draftContent, createNote, toast]);
 
-  const handleContentChange = useCallback((content: string) => {
+  const handleContentChange = useCallback((content: string, preview: string) => {
     setDraftContent(content);
+    setDraftPreview(preview);
   }, []);
 
   const filteredNotes: Note[] = useMemo(() => {
     if (!notes) return [];
-    return [...notes.filter((n) => !n.isDeleted && !n.isArchived)]
+    return [...notes.filter((n) => !n.isDeleted && !n.isArchived && !n.isFavorite)]
       .filter((note) => note.title.toLowerCase().includes(search.toLowerCase()))
       .sort((a, b) => {
         const aTime = a.updatedAt ?? a._creationTime;
