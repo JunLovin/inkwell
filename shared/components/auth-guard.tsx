@@ -12,7 +12,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!isLoading && !isAuthenticated) {
       router.push("/login");
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, []);
 
   if (isLoading || !isAuthenticated) {
     return (
