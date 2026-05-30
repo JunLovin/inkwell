@@ -37,14 +37,19 @@ export default function DashboardSidenav() {
       id: "notes",
       label: "Notes",
       icon: <FileText size={14} />,
-      badge: notes.length,
+      badge: notes.filter((n) => !n.isArchived && !n.isDeleted && !n.isFavorite).length,
     },
-    { id: "favorite", label: "Favorite", icon: <Star size={14} />, badge: 12 },
+    { 
+      id: "favorite", 
+      label: "Favorite", 
+      icon: <Star size={14} />, 
+      badge: notes.filter((n) => n.isFavorite).length,
+    },
     {
       id: "archived",
       label: "Archived",
       icon: <Archive size={14} />,
-      badge: 12,
+      badge: notes.filter((n) => n.isArchived).length,
     },
   ];
 
