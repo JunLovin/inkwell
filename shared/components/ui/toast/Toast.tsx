@@ -158,7 +158,7 @@ export function Toast() {
   const toasts = useToastStore((s) => s.toasts);
 
   return (
-    <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-2.5 items-end">
+    <div className="fixed top-6 right-6 z-[200] flex flex-col gap-2.5 items-end">
       {toasts.map((t) => (
         <ToastItem key={t.id} toast={t} />
       ))}

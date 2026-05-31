@@ -11,12 +11,20 @@ type NotesGridProps = {
   notes: Note[];
   onNoteClick?: (note: Note) => void;
   onCreateNote?: () => void;
+  onFavorite?: (note: Note) => void;
+  onArchive?: (note: Note) => void;
+  onDelete?: (note: Note) => void;
+  onRestore?: (note: Note) => void;
 };
 
 export function NotesGrid({
   notes,
   onNoteClick,
   onCreateNote,
+  onFavorite,
+  onArchive,
+  onDelete,
+  onRestore,
 }: NotesGridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -70,7 +78,14 @@ export function NotesGrid({
     >
       {notes.map((note) => (
         <div key={note._id} className="note-card-anim">
-          <NoteCard note={note} onClick={() => onNoteClick?.(note)} />
+          <NoteCard
+            note={note}
+            onClick={() => onNoteClick?.(note)}
+            onFavorite={onFavorite ? () => onFavorite(note) : undefined}
+            onArchive={onArchive ? () => onArchive(note) : undefined}
+            onDelete={onDelete ? () => onDelete(note) : undefined}
+            onRestore={onRestore ? () => onRestore(note) : undefined}
+          />
         </div>
       ))}
     </div>

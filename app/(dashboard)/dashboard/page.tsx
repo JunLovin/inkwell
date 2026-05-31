@@ -48,7 +48,7 @@ export default function DashboardPage() {
   const recentNotes = useMemo(() => {
     if (!notes) return [];
     return [...notes]
-      .filter((n) => !n.isDeleted)
+      .filter((n) => !n.isDeleted && !n.isArchived)
       .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
       .slice(0, 4);
   }, [notes]);

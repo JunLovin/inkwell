@@ -1,12 +1,75 @@
 @AGENTS.md
 
 <!-- convex-ai-start -->
+
 This project uses [Convex](https://convex.dev) as its backend.
 
 When working on Convex code, **always read `convex/_generated/ai/guidelines.md` first** for important guidelines on how to correctly use Convex APIs and patterns. The file contains rules that override what you may have learned about Convex from training data.
 
 Convex agent skills for common tasks can be installed by running `npx convex ai-files install`.
+
 <!-- convex-ai-end -->
+
+## 1. Think Before Coding
+
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
+
+Before implementing:
+
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+
+## 2. Simplicity First
+
+**Minimum code that solves the problem. Nothing speculative.**
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+## 3. Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
 ---
 
@@ -59,16 +122,16 @@ lib/
 
 ## File & Naming Conventions
 
-| What | Convention | Example |
-|---|---|---|
-| Component files | PascalCase | `Button.tsx`, `NoteEditor.tsx` |
-| Component directories | kebab-case | `icon-box/`, `sidenav-item/` |
-| Barrel exports | `index.ts` | `shared/components/ui/index.ts` |
-| Hooks | `use` prefix, camelCase | `useToast.ts` |
-| Zustand stores | `.store.ts` suffix | `toast.store.ts` |
-| Type files | `.types.ts` suffix | `toast.types.ts` |
-| Zod schemas | `.schema.ts` suffix | `login.schema.ts` |
-| Convex functions | camelCase, domain-grouped | `notes.ts`, `users.ts` |
+| What                  | Convention                | Example                         |
+| --------------------- | ------------------------- | ------------------------------- |
+| Component files       | PascalCase                | `Button.tsx`, `NoteEditor.tsx`  |
+| Component directories | kebab-case                | `icon-box/`, `sidenav-item/`    |
+| Barrel exports        | `index.ts`                | `shared/components/ui/index.ts` |
+| Hooks                 | `use` prefix, camelCase   | `useToast.ts`                   |
+| Zustand stores        | `.store.ts` suffix        | `toast.store.ts`                |
+| Type files            | `.types.ts` suffix        | `toast.types.ts`                |
+| Zod schemas           | `.schema.ts` suffix       | `login.schema.ts`               |
+| Convex functions      | camelCase, domain-grouped | `notes.ts`, `users.ts`          |
 
 ---
 
@@ -169,6 +232,7 @@ Button.displayName = "Button";
 Always read `convex/_generated/ai/guidelines.md` before writing Convex code.
 
 **Schema** (`convex/schema.ts`):
+
 ```typescript
 import { defineSchema, defineTable } from "convex/server";
 import { authTables } from "@convex-dev/auth/server";
@@ -193,6 +257,7 @@ export default schema;
 ```
 
 **Query pattern**:
+
 ```typescript
 import { query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
@@ -214,6 +279,7 @@ export const getNotes = query({
 ```
 
 **Mutation pattern**:
+
 ```typescript
 export const updateNote = mutation({
   args: { id: v.id("notes"), title: v.optional(v.string()) },
@@ -234,6 +300,7 @@ export const updateNote = mutation({
 ```
 
 **Client usage** (inside `"use client"` components):
+
 ```typescript
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -255,6 +322,7 @@ const updateNote = useMutation(api.notes.updateNote);
 Provider: `@convex-dev/auth` with `Password` provider.
 
 **Guard component** (`shared/components/auth-guard.tsx`):
+
 ```typescript
 "use client";
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -271,6 +339,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 ```
 
 **Auth actions** (inside `"use client"` components):
+
 ```typescript
 import { useAuthActions } from "@convex-dev/auth/react";
 const { signIn, signOut } = useAuthActions();
@@ -284,6 +353,7 @@ await signIn("password", { email, password, flow: "signIn" });
 The editor stores content as **JSON string** (Lexical `EditorState` serialized), not raw Markdown or HTML.
 
 Key patterns from `shared/components/ui/note/NoteEditor.tsx`:
+
 - `editorConfig` is exported and reused across note surfaces.
 - `RestoreContentPlugin` — custom plugin using `useLexicalComposerContext` that restores saved JSON state once on mount (guarded by `useRef` flag).
 - Content change handler extracts both the full JSON and a 150-char plain-text preview.
@@ -294,7 +364,9 @@ Key patterns from `shared/components/ui/note/NoteEditor.tsx`:
 ```typescript
 const handleEditorChange = (editorState: EditorState) => {
   const json = JSON.stringify(editorState.toJSON());
-  const preview = editorState.read(() => $getRoot().getTextContent().slice(0, 150));
+  const preview = editorState.read(() =>
+    $getRoot().getTextContent().slice(0, 150),
+  );
   onContentChange?.(json, preview);
 };
 ```
@@ -310,8 +382,17 @@ useEffect(() => {
   const ctx = gsap.context(() => {
     gsap
       .timeline({ defaults: { ease: "power3.out" } })
-      .fromTo(ref.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 })
-      .fromTo(other.current, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.8 }, "-=0.4");
+      .fromTo(
+        ref.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.7 },
+      )
+      .fromTo(
+        other.current,
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.8 },
+        "-=0.4",
+      );
   }, containerRef);
 
   return () => ctx.revert();
@@ -319,6 +400,7 @@ useEffect(() => {
 ```
 
 Standard easing choices:
+
 - `power3.out` — default exit (most elements)
 - `power3.in` / `power3.inOut` — entrances and bidirectional
 - `power4.inOut` — strong curves (modals, drawers)
@@ -343,14 +425,17 @@ export const useToastStore = create<ToastStore>((set) => ({
     set((state) => ({ toasts: [...state.toasts, { id, ...toast }] }));
     return id;
   },
-  remove: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
+  remove: (id) =>
+    set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 }));
 ```
 
 **Toast** can be called outside components via `useToastStore.getState()`:
+
 ```typescript
 export const toast = {
-  success: (opts) => useToastStore.getState().add({ ...opts, variant: "success" }),
+  success: (opts) =>
+    useToastStore.getState().add({ ...opts, variant: "success" }),
   error: (opts) => useToastStore.getState().add({ ...opts, variant: "danger" }),
 };
 ```
@@ -363,11 +448,11 @@ Convex `useQuery` is the source of truth for server state — no client cache du
 
 App Router with route groups:
 
-| Group | Layout wraps | Purpose |
-|---|---|---|
-| `(auth)` | Auth layout | Login, register, password flows |
-| `(dashboard)` | AuthGuard + dashboard layout | All protected pages |
-| `(root)` | Minimal | Public landing |
+| Group         | Layout wraps                 | Purpose                         |
+| ------------- | ---------------------------- | ------------------------------- |
+| `(auth)`      | Auth layout                  | Login, register, password flows |
+| `(dashboard)` | AuthGuard + dashboard layout | All protected pages             |
+| `(root)`      | Minimal                      | Public landing                  |
 
 - Dynamic routes use `[slug]` (not `[id]`) — notes are addressed by slug.
 - `useRouter()` for programmatic navigation.

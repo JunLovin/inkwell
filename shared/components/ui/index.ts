@@ -18,3 +18,4 @@ export { Dropdown } from "./dropdown/Dropdown";
 export { Drawer } from "./drawer/Drawer";
 export { Loader } from "./loader/Loader";
 export { List } from "./list/List";
+export { Tooltip } from "./tooltip";

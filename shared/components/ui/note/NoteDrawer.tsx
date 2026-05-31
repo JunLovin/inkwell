@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Calendar, MoreHorizontal } from "lucide-react";
+import { Calendar, Star, Archive, Trash2, RotateCcw } from "lucide-react";
 
 import { Drawer } from "@/shared/components/ui/drawer";
-import { Dropdown } from "@/shared/components/ui";
+import { Tooltip } from "@/shared/components/ui/tooltip";
 import { Note } from "./NoteCard";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -42,8 +42,10 @@ export function NoteDrawer({ note, open, onClose }: NoteDrawerProps) {
 
   const updateNote = useMutation(api.notes.updateNote);
   const archiveNote = useMutation(api.notes.archiveNote);
+  const restoreNote = useMutation(api.notes.restoreNote);
   const deleteNote = useMutation(api.notes.deleteNote);
   const markNoteAsFavorite = useMutation(api.notes.markNoteAsFavorite);
+  const removeFavoriteNote = useMutation(api.notes.removeFavoriteNote);
 
   const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
@@ -56,37 +58,6 @@ export function NoteDrawer({ note, open, onClose }: NoteDrawerProps) {
   }, []);
 
   if (!note) return null;
-
-  const menuItems = [
-    {
-      id: "archive",
-      label: "Archive note",
-      onClick: () => {
-        handleArchiveNote();
-      },
-    },
-    {
-      id: "favorite",
-      label: "Mark as favorite",
-      onClick: () => {
-        handleMarkAsFavorite();
-      },
-    },
-    {
-      id: "sep",
-      label: "",
-      separator: true,
-      onClick: () => {},
-    },
-    {
-      id: "delete",
-      label: "Delete note",
-      variant: "danger" as const,
-      onClick: () => {
-        handleDeleteNote();
-      },
-    },
-  ];
 
   const handleDeleteNote = async () => {
     try {
@@ -119,6 +90,24 @@ export function NoteDrawer({ note, open, onClose }: NoteDrawerProps) {
       console.error("Failed to archive note:", error);
       toast.error({
         title: "Failed to archive note",
+        description: "Something went wrong. Try again later.",
+      });
+    }
+  };
+
+  const handleRestoreNote = async () => {
+    try {
+      if (!note) return;
+      await restoreNote({ id: note._id });
+      onClose();
+      toast.success({
+        title: "Note restored",
+        description: "The note is back in your notes.",
+      });
+    } catch (error) {
+      console.error("Failed to restore note:", error);
+      toast.error({
+        title: "Failed to restore note",
         description: "Something went wrong. Try again later.",
       });
     }
@@ -165,13 +154,25 @@ export function NoteDrawer({ note, open, onClose }: NoteDrawerProps) {
 
   const handleMarkAsFavorite = async () => {
     try {
-      await markNoteAsFavorite({ id: note._id })
+      if (note.isFavorite) {
+        await removeFavoriteNote({ id: note._id });
+        toast.success({
+          title: "Removed from favorites",
+          description: "The note has been removed from your favorites.",
+        });
+      } else {
+        await markNoteAsFavorite({ id: note._id });
+        toast.success({
+          title: "Added to favorites",
+          description: "The note has been added to your favorites.",
+        });
+      }
       onClose();
     } catch (error) {
-      console.error("Failed to mark note as favorite:", error);
+      console.error("Failed to update favorite:", error);
       toast.error({
-        title: "Failed to mark as favorite",
-        description: "Something went wrong, please try again later."
+        title: "Failed to update favorite",
+        description: "Something went wrong, please try again later.",
       });
     }
   }
@@ -185,32 +186,53 @@ export function NoteDrawer({ note, open, onClose }: NoteDrawerProps) {
         onExpand={() => router.push(`/dashboard/notes/${note.slug}`)}
       >
         <div className="flex flex-col h-full">
-          <div
-            className={`h-32 bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-end p-5 relative`}
-          >
-            <div className="absolute top-4 right-4">
-              <Dropdown
-                trigger={
+          <div className="h-32 bg-gradient-to-br from-zinc-800 to-zinc-900 relative">
+            <div className="absolute top-3 right-3 flex items-center gap-1">
+              {!note.isArchived && (
+                <Tooltip content={note.isFavorite ? "Remove from favorites" : "Add to favorites"} side="bottom">
                   <button
                     type="button"
-                    className="w-7 h-7 rounded-lg bg-zinc-800/80 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                    onClick={handleMarkAsFavorite}
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+                      note.isFavorite
+                        ? "text-amber-400 bg-amber-500/10 hover:bg-amber-500/20"
+                        : "text-zinc-500 bg-zinc-800/80 border border-zinc-700 hover:text-amber-400 hover:bg-amber-500/10"
+                    }`}
                   >
-                    <MoreHorizontal size={14} />
+                    <Star size={14} fill={note.isFavorite ? "currentColor" : "none"} />
                   </button>
-                }
-                items={menuItems.map((i) => ({
-                  id: i.id,
-                  label: i.label,
-                  separator: i.separator,
-                  variant: i.variant,
-                }))}
-                onSelect={(id) => {
-                  const item = menuItems.find((m) => m.id === id);
-                  item?.onClick();
-                }}
-                align="right"
-                width={180}
-              />
+                </Tooltip>
+              )}
+              {note.isArchived ? (
+                <Tooltip content="Restore note" side="bottom">
+                  <button
+                    type="button"
+                    onClick={handleRestoreNote}
+                    className="w-7 h-7 rounded-lg bg-zinc-800/80 border border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/20 transition-colors cursor-pointer"
+                  >
+                    <RotateCcw size={14} />
+                  </button>
+                </Tooltip>
+              ) : (
+                <Tooltip content="Archive note" side="bottom">
+                  <button
+                    type="button"
+                    onClick={handleArchiveNote}
+                    className="w-7 h-7 rounded-lg bg-zinc-800/80 border border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700 transition-colors cursor-pointer"
+                  >
+                    <Archive size={14} />
+                  </button>
+                </Tooltip>
+              )}
+              <Tooltip content="Delete note" side="bottom">
+                <button
+                  type="button"
+                  onClick={handleDeleteNote}
+                  className="w-7 h-7 rounded-lg bg-zinc-800/80 border border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-colors cursor-pointer"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </Tooltip>
             </div>
           </div>
 

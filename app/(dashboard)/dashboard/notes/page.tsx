@@ -31,6 +31,10 @@ export default function NotesPage() {
 
   const notes = useQuery(api.notes.getNotes, {});
   const createNote = useMutation(api.notes.addNote);
+  const markFavorite = useMutation(api.notes.markNoteAsFavorite);
+  const removeFavorite = useMutation(api.notes.removeFavoriteNote);
+  const archiveNote = useMutation(api.notes.archiveNote);
+  const deleteNote = useMutation(api.notes.deleteNote);
 
   const handleOpenNoteDialog = () => {
     setDraftTitle("");
@@ -165,15 +169,38 @@ export default function NotesPage() {
           </div>
         ) : (
           <NotesGrid
-            notes={filteredNotes.map((n) => ({
-              ...n,
-              _id: n._id,
-              title: n.title,
-              preview: n.preview,
-              updatedAt: n.updatedAt,
-            }))}
+            notes={filteredNotes}
             onNoteClick={setSelectedNote}
             onCreateNote={handleOpenNoteDialog}
+            onFavorite={async (note) => {
+              try {
+                if (note.isFavorite) {
+                  await removeFavorite({ id: note._id });
+                  toast.success({ title: "Removed from favorites" });
+                } else {
+                  await markFavorite({ id: note._id });
+                  toast.success({ title: "Added to favorites" });
+                }
+              } catch {
+                toast.error({ title: "Failed to update favorite" });
+              }
+            }}
+            onArchive={async (note) => {
+              try {
+                await archiveNote({ id: note._id });
+                toast.success({ title: "Note archived" });
+              } catch {
+                toast.error({ title: "Failed to archive note" });
+              }
+            }}
+            onDelete={async (note) => {
+              try {
+                await deleteNote({ id: note._id });
+                toast.success({ title: "Note deleted" });
+              } catch {
+                toast.error({ title: "Failed to delete note" });
+              }
+            }}
           />
         )}
       </div>
