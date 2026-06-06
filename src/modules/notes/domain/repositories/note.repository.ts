@@ -1,0 +1,33 @@
+import type { Note, NoteId } from "../entities/note";
+
+export type CreateNoteInput = {
+  title: string;
+  slug: string;
+  content: string;
+  preview: string;
+};
+
+export type UpdateNoteInput = {
+  id: NoteId;
+  title?: string;
+  content?: string;
+  preview?: string;
+};
+
+export type NoteMutations = {
+  create: (input: CreateNoteInput) => Promise<void>;
+  update: (input: UpdateNoteInput) => Promise<void>;
+  archive: (id: NoteId) => Promise<void>;
+  restore: (id: NoteId) => Promise<void>;
+  favorite: (id: NoteId) => Promise<void>;
+  unfavorite: (id: NoteId) => Promise<void>;
+  remove: (id: NoteId) => Promise<void>;
+};
+
+export type NoteRepositoryPort = {
+  useList: () => { notes: Note[] | undefined; isLoading: boolean };
+  useFavoriteList: () => { notes: Note[] | undefined; isLoading: boolean };
+  useArchivedList: () => { notes: Note[] | undefined; isLoading: boolean };
+  useGet: (slug: string) => { note: Note | undefined; isLoading: boolean };
+  useMutations: () => NoteMutations;
+};

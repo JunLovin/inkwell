@@ -5,7 +5,7 @@ import { gsap } from "gsap";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 
-import { Badge, Chip, IconBox } from "@/shared/components/ui";
+import { Badge, Chip, IconBox } from "@/shared/ui";
 
 function splitCharsPreservingBreaks(el: HTMLElement) {
   const html = el.innerHTML;

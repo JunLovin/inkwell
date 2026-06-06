@@ -4,7 +4,7 @@ import { ArrowLeft, Feather } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { Chip } from "@/shared/components/ui";
+import { Chip } from "@/shared/ui";
 
 export default function AuthLayout({
   children,
