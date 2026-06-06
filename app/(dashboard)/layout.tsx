@@ -1,6 +1,6 @@
-import AuthGuard from "@/shared/components/auth-guard";
-import DashboardSidenav from "@/shared/components/layout/Sidenav";
-import AIButton from "@/shared/components/ai-button";
+import { AuthGuard } from "@/modules/auth";
+import { AIChatButton } from "@/modules/ai-chat";
+import { DashboardSidenav } from "@/shared/layout/dashboard-sidenav";
 
 export default function DashboardLayout({
   children,
@@ -17,7 +17,7 @@ export default function DashboardLayout({
           {children}
         </div>
       </main>
-      <AIButton />
+      <AIChatButton />
     </AuthGuard>
   );
 }

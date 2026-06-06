@@ -1,4 +1,4 @@
-import NotePage from "./NotePage";
+import { NoteDetailPage } from "@/modules/notes";
 
 export default async function Page({
   params,
@@ -6,6 +6,5 @@ export default async function Page({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-
-  return <NotePage slug={slug} />;
+  return <NoteDetailPage slug={slug} />;
 }

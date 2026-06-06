@@ -1,3 +1,5 @@
-export default function ResetPasswordPage() {
-  return <></>;
+import { ResetPasswordPage } from "@/modules/auth";
+
+export default function Page() {
+  return <ResetPasswordPage />;
 }
