@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   CheckCircle2,
@@ -13,6 +14,7 @@ import gsap from "gsap";
 
 import { useToastStore } from "@/shared/stores/toast.store";
 import type { Toast, ToastVariant } from "@/shared/types/toast.types";
+import { usePortalMounted } from "@/shared/hooks/use-portal-mounted";
 
 const DEFAULT_DURATION = 4000;
 
@@ -156,12 +158,16 @@ function ToastItem({ toast }: { toast: Toast }) {
 
 export function Toast() {
   const toasts = useToastStore((s) => s.toasts);
+  const mounted = usePortalMounted();
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div className="fixed top-6 right-6 z-[200] flex flex-col gap-2.5 items-end">
       {toasts.map((t) => (
         <ToastItem key={t.id} toast={t} />
       ))}
-    </div>
+    </div>,
+    document.body,
   );
 }

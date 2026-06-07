@@ -6,6 +6,9 @@ import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 
 import { Badge, Chip, IconBox } from "@/shared/ui";
+import { FeaturesGrid } from "@/shared/layout/landing/features-grid";
+import { Faq } from "@/shared/layout/landing/faq";
+import { Footer } from "@/shared/layout/landing/footer";
 
 function splitCharsPreservingBreaks(el: HTMLElement) {
   const html = el.innerHTML;
@@ -141,7 +144,8 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <main className="relative flex h-dvh font-host overflow-hidden bg-zinc-950">
+    <main className="font-host bg-zinc-950">
+      <section className="relative flex min-h-dvh overflow-hidden">
       <div
         className="absolute inset-0 bg-cover bg-center opacity-25 mix-blend-luminosity"
         style={{ backgroundImage: "url('/landing/hero_background.png')" }}
@@ -221,6 +225,11 @@ export default function LandingPage() {
           ))}
         </div>
       </div>
+      </section>
+
+      <FeaturesGrid />
+      <Faq />
+      <Footer />
     </main>
   );
 }

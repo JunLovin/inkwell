@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import gsap from "gsap";
 import type { ReactNode } from "react";
 
 import { Button } from "@/shared/ui/button";
+import { usePortalMounted } from "@/shared/hooks/use-portal-mounted";
 
 export type DialogAction = {
   label: string;
@@ -45,6 +47,7 @@ export function Dialog({
 }: DialogProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const mounted = usePortalMounted();
 
   useEffect(() => {
     const overlay = overlayRef.current;
@@ -94,7 +97,9 @@ export function Dialog({
     return () => document.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       ref={overlayRef}
       onClick={(e) => e.target === overlayRef.current && onClose()}
@@ -153,6 +158,7 @@ export function Dialog({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

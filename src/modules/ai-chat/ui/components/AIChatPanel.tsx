@@ -2,9 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname, useParams } from "next/navigation";
-import { X, Sparkles } from "lucide-react";
+import { Eraser, Sparkles, X } from "lucide-react";
 import gsap from "gsap";
 
+import { Tooltip } from "@/shared/ui/tooltip";
 import { useNote } from "@/modules/notes";
 import { extractTextFromLexicalJSON } from "@/lib/lexical";
 
@@ -14,6 +15,7 @@ import {
   dashboardContextId,
   noteContextId,
 } from "../../domain/entities/chat-context";
+import { getSuggestions } from "../../domain/services/prompt-suggestions";
 import type { ChatMessage } from "../../domain/entities/chat-message";
 
 import { AIChatMessage } from "./AIChatMessage";
@@ -39,6 +41,8 @@ export function AIChatPanel() {
     setAttachedNote,
     setLoading,
     setContext,
+    clearContext,
+    removeLastAssistantMessage,
   } = useAIChatStore();
 
   const noteSlug =
@@ -110,13 +114,11 @@ export function AIChatPanel() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  const handleSubmit = async (text: string) => {
-    addMessage({ role: "user", content: text });
+  const runPrompt = async (text: string, history: ChatMessage[]) => {
     setLoading(true);
-
     try {
       const response = await sendMessage({
-        history: messages,
+        history,
         text,
         attachedFiles,
         attachedNote,
@@ -132,6 +134,22 @@ export function AIChatPanel() {
     }
   };
 
+  const handleSubmit = async (text: string) => {
+    addMessage({ role: "user", content: text });
+    await runPrompt(text, messages);
+  };
+
+  const handleRegenerate = async () => {
+    if (isLoading) return;
+    const lastUser = [...messages]
+      .reverse()
+      .find((m) => m.role === "user");
+    if (!lastUser) return;
+    removeLastAssistantMessage();
+    const historyWithoutLast = messages.slice(0, -1);
+    await runPrompt(lastUser.content, historyWithoutLast);
+  };
+
   return (
     <div
       ref={panelRef}
@@ -143,9 +161,21 @@ export function AIChatPanel() {
         <span className="flex-1 text-sm font-medium text-zinc-100">
           Inkwell Assistant
         </span>
+        {messages.length > 0 && (
+          <Tooltip content="Clear chat">
+            <button
+              type="button"
+              onClick={clearContext}
+              className="w-7 h-7 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors cursor-pointer"
+            >
+              <Eraser className="w-3.5 h-3.5" />
+            </button>
+          </Tooltip>
+        )}
         <button
+          type="button"
           onClick={close}
-          className="w-7 h-7 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
+          className="w-7 h-7 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -153,15 +183,35 @@ export function AIChatPanel() {
 
       <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3 min-h-0">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full gap-2 py-8 text-center">
+          <div className="flex flex-col items-center justify-center h-full gap-4 py-8 text-center">
             <Sparkles className="w-8 h-8 text-zinc-700" />
             <p className="text-sm text-zinc-500 max-w-[220px]">
-              Ask me anything about your notes or writing.
+              {attachedNote
+                ? "Ask anything about this note."
+                : "Ask anything about your notes or writing."}
             </p>
+            <div className="flex flex-col gap-1.5 w-full max-w-[280px]">
+              {getSuggestions(attachedNote).map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => handleSubmit(prompt)}
+                  className="text-xs text-zinc-400 hover:text-zinc-200 bg-zinc-800/40 hover:bg-zinc-800/80 border border-zinc-800 hover:border-zinc-700 rounded-xl px-3 py-2 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
           </div>
         )}
-        {messages.map((message) => (
-          <AIChatMessage key={message.id} message={message} />
+        {messages.map((message, idx) => (
+          <AIChatMessage
+            key={message.id}
+            message={message}
+            isLast={idx === messages.length - 1}
+            onRegenerate={handleRegenerate}
+          />
         ))}
         {isLoading && <AIChatTyping />}
         <div ref={messagesEndRef} />

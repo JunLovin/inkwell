@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, ChevronDown } from "lucide-react";
 import gsap from "gsap";
+
+import { usePortalMounted } from "@/shared/hooks/use-portal-mounted";
 
 export type SelectOption = {
   value: string;
@@ -22,6 +25,8 @@ type SelectProps = {
   onChange?: (value: string) => void;
 };
 
+type Coords = { top: number; left: number; width: number };
+
 export function Select({
   options,
   value,
@@ -33,8 +38,11 @@ export function Select({
   onChange,
 }: SelectProps) {
   const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState<Coords>({ top: 0, left: 0, width: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const mounted = usePortalMounted();
   const hasError = !!error;
 
   const selected = options.find((o) => o.value === value);
@@ -44,6 +52,13 @@ export function Select({
     if (!menu) return;
 
     if (open) {
+      const rect = triggerRef.current!.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom + 8,
+        left: rect.left,
+        width: rect.width,
+      });
+      gsap.set(menu, { display: "block" });
       gsap.fromTo(
         menu,
         { opacity: 0, y: -6, scale: 0.97, filter: "blur(3px)" },
@@ -64,6 +79,7 @@ export function Select({
         filter: "blur(3px)",
         duration: 0.15,
         ease: "power2.in",
+        onComplete: () => { gsap.set(menu, { display: "none" }); },
       });
     }
   }, [open]);
@@ -72,7 +88,9 @@ export function Select({
     const handleOutside = (e: MouseEvent) => {
       if (
         containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
+        !containerRef.current.contains(e.target as Node) &&
+        menuRef.current &&
+        !menuRef.current.contains(e.target as Node)
       ) {
         setOpen(false);
       }
@@ -91,6 +109,7 @@ export function Select({
 
       <div ref={containerRef} className="relative">
         <button
+          ref={triggerRef}
           type="button"
           disabled={disabled}
           onClick={() => !disabled && setOpen((v) => !v)}
@@ -125,42 +144,54 @@ export function Select({
           className={`absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-zinc-500 to-transparent transition-opacity duration-500 ${open && !hasError ? "opacity-100" : "opacity-0"}`}
         />
 
-        {open && (
-          <div
-            ref={menuRef}
-            className="absolute top-full left-0 right-0 mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl p-1.5 shadow-xl shadow-black/40 z-50 max-h-56 overflow-y-auto"
-          >
-            {options.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                disabled={option.disabled}
-                onClick={() => {
-                  if (!option.disabled) {
-                    onChange?.(option.value);
-                    setOpen(false);
-                  }
-                }}
-                className={`
-                  w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm
-                  transition-all duration-150 cursor-pointer
-                  disabled:opacity-40 disabled:cursor-not-allowed
-                  ${
-                    option.value === value
-                      ? "bg-zinc-800 text-white"
-                      : "text-zinc-400 hover:bg-zinc-800/60 hover:text-white"
-                  }
-                `}
-              >
-                {option.icon && <span className="shrink-0">{option.icon}</span>}
-                <span className="flex-1 text-left">{option.label}</span>
-                {option.value === value && (
-                  <Check size={13} className="shrink-0 text-zinc-400" />
-                )}
-              </button>
-            ))}
-          </div>
-        )}
+        {mounted &&
+          createPortal(
+            <div
+              ref={menuRef}
+              style={{
+                display: "none",
+                position: "fixed",
+                top: coords.top,
+                left: coords.left,
+                width: coords.width,
+                zIndex: 9999,
+              }}
+              className="bg-zinc-900 border border-zinc-800 rounded-2xl p-1.5 shadow-xl shadow-black/40 max-h-56 overflow-y-auto"
+            >
+              {options.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  disabled={option.disabled}
+                  onClick={() => {
+                    if (!option.disabled) {
+                      onChange?.(option.value);
+                      setOpen(false);
+                    }
+                  }}
+                  className={`
+                    w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm
+                    transition-all duration-150 cursor-pointer
+                    disabled:opacity-40 disabled:cursor-not-allowed
+                    ${
+                      option.value === value
+                        ? "bg-zinc-800 text-white"
+                        : "text-zinc-400 hover:bg-zinc-800/60 hover:text-white"
+                    }
+                  `}
+                >
+                  {option.icon && (
+                    <span className="shrink-0">{option.icon}</span>
+                  )}
+                  <span className="flex-1 text-left">{option.label}</span>
+                  {option.value === value && (
+                    <Check size={13} className="shrink-0 text-zinc-400" />
+                  )}
+                </button>
+              ))}
+            </div>,
+            document.body,
+          )}
       </div>
 
       {(error || hint) && (

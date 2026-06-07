@@ -58,7 +58,7 @@ export default function Header() {
         {[
           { label: "Home", href: "#" },
           { label: "Features", href: "#features" },
-          { label: "Contact", href: "#contact" },
+          { label: "FAQ", href: "#faq" },
         ].map(({ label, href }) => (
           <a
             key={label}
