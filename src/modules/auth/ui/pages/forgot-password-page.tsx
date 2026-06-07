@@ -9,6 +9,8 @@ import { z } from "zod";
 import gsap from "gsap";
 
 import { Button, Input } from "@/shared/ui";
+import { useToast } from "@/shared/hooks/use-toast";
+import { useAuthActions } from "../../infrastructure/hooks/use-auth";
 
 const forgotSchema = z.object({
   email: z
@@ -20,6 +22,9 @@ const forgotSchema = z.object({
 type ForgotSchema = z.infer<typeof forgotSchema>;
 
 export function ForgotPasswordPage() {
+  const { requestPasswordReset } = useAuthActions();
+  const { toast } = useToast();
+
   const [submitted, setSubmitted] = useState(false);
   const [sentTo, setSentTo] = useState("");
 
@@ -80,9 +85,17 @@ export function ForgotPasswordPage() {
   }, [submitted]);
 
   const onSubmit = async (data: ForgotSchema) => {
-    await new Promise((r) => setTimeout(r, 1500));
-    setSentTo(data.email);
-    setSubmitted(true);
+    try {
+      await requestPasswordReset(data.email);
+      setSentTo(data.email);
+      setSubmitted(true);
+    } catch (error) {
+      console.error("Forgot password failed:", error);
+      toast.error({
+        title: "Could not send reset email",
+        description: "Check the address and try again.",
+      });
+    }
   };
 
   if (submitted) {
@@ -106,6 +119,14 @@ export function ForgotPasswordPage() {
         </div>
 
         <div className="space-y-3">
+          <Link
+            href={`/auth/reset-password?email=${encodeURIComponent(sentTo)}`}
+            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-white text-zinc-900 hover:bg-zinc-100 text-sm font-medium py-3.5 transition-colors duration-200"
+          >
+            I have the code
+            <ArrowRight size={15} />
+          </Link>
+
           <Button
             type="button"
             variant="secondary"

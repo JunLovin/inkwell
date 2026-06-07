@@ -190,7 +190,9 @@ export function LoginPage() {
       <div ref={oauthRef} className="space-y-3">
         <button
           type="button"
-          className="w-full cursor-pointer flex items-center justify-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-800/30 hover:bg-zinc-800/60 hover:border-zinc-700 text-zinc-300 text-sm py-3.5 transition-all duration-300"
+          disabled
+          aria-label="Continue with Google — coming soon"
+          className="w-full flex items-center justify-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-800/20 text-zinc-500 text-sm py-3.5 opacity-50 cursor-not-allowed"
         >
           <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
             <path
@@ -211,13 +213,21 @@ export function LoginPage() {
             />
           </svg>
           Continue with Google
+          <span className="text-[10px] tracking-wide uppercase text-zinc-600 border border-zinc-700/60 rounded-full px-2 py-0.5">
+            soon
+          </span>
         </button>
 
         <button
           type="button"
-          className="w-full flex items-center cursor-pointer justify-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-800/30 hover:bg-zinc-800/60 hover:border-zinc-700 text-zinc-300 text-sm py-3.5 transition-all duration-300"
+          disabled
+          aria-label="Continue with GitHub — coming soon"
+          className="w-full flex items-center justify-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-800/20 text-zinc-500 text-sm py-3.5 opacity-50 cursor-not-allowed"
         >
           Continue with GitHub
+          <span className="text-[10px] tracking-wide uppercase text-zinc-600 border border-zinc-700/60 rounded-full px-2 py-0.5">
+            soon
+          </span>
         </button>
       </div>
 

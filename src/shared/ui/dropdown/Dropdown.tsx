@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, ChevronDown } from "lucide-react";
 import gsap from "gsap";
 import type { ReactNode } from "react";
+
+import { usePortalMounted } from "@/shared/hooks/use-portal-mounted";
 
 export type DropdownItem = {
   id: string;
@@ -23,6 +26,8 @@ type DropdownProps = {
   width?: number;
 };
 
+type Coords = { top: number; left: number; width: number };
+
 export function Dropdown({
   trigger,
   items,
@@ -31,14 +36,23 @@ export function Dropdown({
   width = 200,
 }: DropdownProps) {
   const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState<Coords>({ top: 0, left: 0, width });
   const menuRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const mounted = usePortalMounted();
 
   useEffect(() => {
     const menu = menuRef.current;
     if (!menu) return;
 
     if (open) {
+      const rect = containerRef.current!.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom + 8,
+        left: align === "right" ? rect.right - width : rect.left,
+        width,
+      });
+      gsap.set(menu, { display: "block" });
       gsap.fromTo(
         menu,
         { opacity: 0, y: -6, scale: 0.97, filter: "blur(3px)" },
@@ -59,15 +73,18 @@ export function Dropdown({
         filter: "blur(3px)",
         duration: 0.15,
         ease: "power2.in",
+        onComplete: () => { gsap.set(menu, { display: "none" }); },
       });
     }
-  }, [open]);
+  }, [open, align, width]);
 
   useEffect(() => {
     const handleOutside = (e: MouseEvent) => {
       if (
         containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
+        !containerRef.current.contains(e.target as Node) &&
+        menuRef.current &&
+        !menuRef.current.contains(e.target as Node)
       ) {
         setOpen(false);
       }
@@ -82,47 +99,56 @@ export function Dropdown({
         {trigger}
       </div>
 
-      {open && (
-        <div
-          ref={menuRef}
-          style={{ width, [align === "right" ? "right" : "left"]: 0 }}
-          className="absolute top-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl p-1.5 shadow-xl shadow-black/40 z-50"
-        >
-          {items.map((item) =>
-            item.separator ? (
-              <div key={item.id} className="my-1 h-px bg-zinc-800" />
-            ) : (
-              <button
-                key={item.id}
-                type="button"
-                disabled={item.disabled}
-                onClick={() => {
-                  if (!item.disabled) {
-                    onSelect?.(item.id);
-                    setOpen(false);
-                  }
-                }}
-                className={`
-                  w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs
-                  transition-all duration-150 cursor-pointer text-left
-                  disabled:opacity-40 disabled:cursor-not-allowed
-                  ${
-                    item.variant === "danger"
-                      ? "text-red-400 hover:bg-red-950/40 hover:text-red-300"
-                      : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
-                  }
-                `}
-              >
-                {item.icon && <span className="shrink-0">{item.icon}</span>}
-                <span className="flex-1">{item.label}</span>
-                {item.checked && (
-                  <Check size={12} className="text-zinc-400 shrink-0" />
-                )}
-              </button>
-            ),
-          )}
-        </div>
-      )}
+      {mounted &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              display: "none",
+              position: "fixed",
+              top: coords.top,
+              left: coords.left,
+              width: coords.width,
+              zIndex: 9999,
+            }}
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-1.5 shadow-xl shadow-black/40"
+          >
+            {items.map((item) =>
+              item.separator ? (
+                <div key={item.id} className="my-1 h-px bg-zinc-800" />
+              ) : (
+                <button
+                  key={item.id}
+                  type="button"
+                  disabled={item.disabled}
+                  onClick={() => {
+                    if (!item.disabled) {
+                      onSelect?.(item.id);
+                      setOpen(false);
+                    }
+                  }}
+                  className={`
+                    w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs
+                    transition-all duration-150 cursor-pointer text-left
+                    disabled:opacity-40 disabled:cursor-not-allowed
+                    ${
+                      item.variant === "danger"
+                        ? "text-red-400 hover:bg-red-950/40 hover:text-red-300"
+                        : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                    }
+                  `}
+                >
+                  {item.icon && <span className="shrink-0">{item.icon}</span>}
+                  <span className="flex-1">{item.label}</span>
+                  {item.checked && (
+                    <Check size={12} className="text-zinc-400 shrink-0" />
+                  )}
+                </button>
+              ),
+            )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

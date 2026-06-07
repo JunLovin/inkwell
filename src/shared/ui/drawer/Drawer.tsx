@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X, Maximize2 } from "lucide-react";
 import gsap from "gsap";
 import type { ReactNode } from "react";
+
+import { usePortalMounted } from "@/shared/hooks/use-portal-mounted";
 
 type DrawerProps = {
   open: boolean;
@@ -32,6 +35,7 @@ export function Drawer({
 }: DrawerProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const mounted = usePortalMounted();
 
   useEffect(() => {
     const overlay = overlayRef.current;
@@ -72,7 +76,9 @@ export function Drawer({
     return () => document.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       ref={overlayRef}
       onClick={(e) => e.target === overlayRef.current && onClose()}
@@ -117,6 +123,7 @@ export function Drawer({
 
         <div className="flex-1 overflow-y-auto">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
