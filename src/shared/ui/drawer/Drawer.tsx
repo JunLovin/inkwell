@@ -14,14 +14,16 @@ type DrawerProps = {
   title?: string;
   onExpand?: () => void;
   expandLabel?: string;
+  actions?: ReactNode;
   children?: ReactNode;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
 };
 
 const sizeStyles = {
   sm: "max-w-sm",
   md: "max-w-md",
   lg: "max-w-lg",
+  xl: "max-w-xl",
 };
 
 export function Drawer({
@@ -30,6 +32,7 @@ export function Drawer({
   title,
   onExpand,
   expandLabel = "Open full note",
+  actions,
   children,
   size = "md",
 }: DrawerProps) {
@@ -66,7 +69,7 @@ export function Drawer({
         },
       });
     }
-  }, [open]);
+  }, [open, mounted]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -93,14 +96,18 @@ export function Drawer({
           flex flex-col shadow-2xl shadow-black/60
         `}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800 shrink-0">
+        <div className="flex items-center px-5 py-4 border-b border-zinc-800 shrink-0">
           {title && (
             <h3 className="text-white text-sm font-medium tracking-tight truncate flex-1 mr-4">
               {title}
             </h3>
           )}
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1 shrink-0 ml-auto">
+            {actions}
+            {(actions && onExpand) && (
+              <div className="w-px h-4 bg-zinc-800 mx-1" />
+            )}
             {onExpand && (
               <button
                 type="button"
@@ -114,7 +121,7 @@ export function Drawer({
             <button
               type="button"
               onClick={onClose}
-              className="text-zinc-600 hover:text-zinc-300 transition-colors cursor-pointer p-1"
+              className="text-zinc-600 hover:text-zinc-300 transition-colors cursor-pointer p-1 ml-1"
             >
               <X size={18} />
             </button>

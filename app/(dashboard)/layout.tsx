@@ -1,6 +1,7 @@
 import { AuthGuard } from "@/modules/auth";
 import { AIChatButton } from "@/modules/ai-chat";
 import { DashboardSidenav } from "@/shared/layout/dashboard-sidenav";
+import { ContentWrapper } from "./content-wrapper";
 
 export default function DashboardLayout({
   children,
@@ -13,9 +14,7 @@ export default function DashboardLayout({
         <aside>
           <DashboardSidenav />
         </aside>
-        <div className="flex-1 p-4 h-full overflow-y-auto min-h-0">
-          {children}
-        </div>
+        <ContentWrapper>{children}</ContentWrapper>
       </main>
       <AIChatButton />
     </AuthGuard>
