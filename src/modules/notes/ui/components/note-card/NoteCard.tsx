@@ -66,11 +66,9 @@ export function NoteCard({
           <h3 className="text-sm font-medium text-white truncate group-hover:text-zinc-100 transition-colors leading-snug">
             {note.title || "Untitled"}
           </h3>
-          {note.preview && (
-            <p className="text-xs text-zinc-600 mt-1 line-clamp-2 leading-relaxed">
-              {note.preview}
-            </p>
-          )}
+          <p className="text-xs text-zinc-600 mt-1 line-clamp-2 leading-relaxed min-h-[2.5rem]">
+            {note.preview ?? ""}
+          </p>
         </div>
 
         <div className="flex items-center justify-between">

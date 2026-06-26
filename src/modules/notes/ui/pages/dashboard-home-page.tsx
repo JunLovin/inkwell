@@ -144,7 +144,7 @@ export function DashboardHomePage() {
   ];
 
   return (
-    <div className="flex flex-col gap-10 px-2 py-8 max-w-5xl mx-auto w-full">
+    <div className="flex flex-col h-full gap-6 px-6 py-6">
       <div ref={headerRef} className="flex items-start justify-between gap-4">
         <div>
           <p className="text-zinc-600 text-xs mb-2 tracking-wide">{today}</p>
