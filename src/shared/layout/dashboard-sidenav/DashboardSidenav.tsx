@@ -2,26 +2,35 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Archive, FileText, Grid, Star } from "lucide-react";
+import {
+  Archive,
+  FileText,
+  Folder as FolderIcon,
+  Grid,
+  Star,
+} from "lucide-react";
 
-import { Sidenav } from "../sidenav/Sidenav";
-import { useAllNotes } from "@/modules/notes";
+import { Sidenav, type SidenavNavItem } from "../sidenav/Sidenav";
+import { useNoteCounts } from "@/modules/notes";
+import { tagSwatchClasses, useAllTags } from "@/modules/tags";
+import { folderIconClasses, useAllFolders } from "@/modules/folders";
 import {
   useAuthActions,
   useCurrentUser,
 } from "@/modules/auth";
-import { countByStatus } from "@/modules/notes/domain/services/note-filter";
 
 export function DashboardSidenav() {
   const { signOut } = useAuthActions();
   const router = useRouter();
 
   const { user, isLoading: userLoading } = useCurrentUser();
-  const { notes, isLoading: notesLoading } = useAllNotes();
+  const counts = useNoteCounts();
+  const { tags } = useAllTags();
+  const { folders } = useAllFolders();
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  if (userLoading || notesLoading || !user || !notes) {
+  if (userLoading || !user) {
     return (
       <div className="flex items-center justify-center h-dvh w-3xs">
         <span className="text-zinc-500 text-xs text-center mx-auto">
@@ -31,9 +40,7 @@ export function DashboardSidenav() {
     );
   }
 
-  const counts = countByStatus(notes);
-
-  const sidenavItems = [
+  const sidenavItems: SidenavNavItem[] = [
     {
       id: "dashboard",
       label: "Dashboard",
@@ -57,6 +64,27 @@ export function DashboardSidenav() {
       icon: <Archive size={14} />,
       badge: counts.archived,
     },
+    ...(folders ?? []).map<SidenavNavItem>((folder) => ({
+      id: `folder:${folder._id}`,
+      label: folder.name,
+      icon: (
+        <FolderIcon
+          size={13}
+          className={folderIconClasses(folder.color)}
+        />
+      ),
+      section: "Folders",
+    })),
+    ...(tags ?? []).map<SidenavNavItem>((tag) => ({
+      id: `tag:${tag._id}`,
+      label: tag.name,
+      icon: (
+        <span
+          className={`w-2 h-2 rounded-full ${tagSwatchClasses(tag.color)}`}
+        />
+      ),
+      section: "Tags",
+    })),
   ];
 
   return (
@@ -68,6 +96,16 @@ export function DashboardSidenav() {
       onNavigate={(id) => {
         if (id === "dashboard") {
           router.push("/dashboard");
+          return;
+        }
+        if (id.startsWith("tag:")) {
+          const tagId = id.slice("tag:".length);
+          router.push(`/dashboard/notes?tag=${tagId}`);
+          return;
+        }
+        if (id.startsWith("folder:")) {
+          const folderId = id.slice("folder:".length);
+          router.push(`/dashboard/notes?folder=${folderId}`);
           return;
         }
         router.push(`/dashboard/${id}`);

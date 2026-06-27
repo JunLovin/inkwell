@@ -9,4 +9,5 @@ export const useAllNotes = notesService.useAllNotes;
 export const useActiveNotes = notesService.useActiveNotes;
 export const useFavoriteNotes = notesService.useFavoriteNotes;
 export const useArchivedNotes = notesService.useArchivedNotes;
+export const useNotesSearch = notesService.useNotesSearch;
 export const useNoteCounts = notesService.useNoteCounts;

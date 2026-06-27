@@ -2,24 +2,14 @@
 
 import { X } from "lucide-react";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
-import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
-import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
-import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
-import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
-import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
-import { ListPlugin } from "@lexical/react/LexicalListPlugin";
-import { TRANSFORMERS } from "@lexical/markdown";
-import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
 import { $getRoot, type EditorState } from "lexical";
 
 import { Divider } from "@/shared/ui/divider";
-import {
-  createEditorConfig,
-  RestoreContentPlugin,
-} from "@/lib/lexical";
+import { createEditorConfig, EditorPluginsBundle } from "@/lib/lexical";
+import type { SaveStatus } from "../../../domain/services/editor-constants";
 
-export type SaveStatus = "idle" | "saving" | "saved";
+export type { SaveStatus };
 
 type NoteEditorProps = {
   initialTitle?: string;
@@ -87,7 +77,7 @@ export function NoteEditor({
       <div className="flex-1 overflow-y-auto px-8 pb-8">
         <LexicalComposer initialConfig={editorConfig}>
           <div className="relative">
-            <RichTextPlugin
+            <EditorPluginsBundle
               contentEditable={
                 <ContentEditable
                   aria-placeholder="Enter some text"
@@ -100,16 +90,9 @@ export function NoteEditor({
                   }
                 />
               }
-              ErrorBoundary={LexicalErrorBoundary}
+              restoreContent={initialContent || undefined}
+              onChange={handleEditorChange}
             />
-            <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
-            <HistoryPlugin />
-            <ListPlugin />
-            <TabIndentationPlugin />
-            <OnChangePlugin onChange={handleEditorChange} />
-            {initialContent && (
-              <RestoreContentPlugin content={initialContent} />
-            )}
           </div>
         </LexicalComposer>
       </div>

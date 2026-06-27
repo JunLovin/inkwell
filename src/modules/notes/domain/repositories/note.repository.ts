@@ -21,7 +21,11 @@ export type NoteMutations = {
   restore: (id: NoteId) => Promise<void>;
   favorite: (id: NoteId) => Promise<void>;
   unfavorite: (id: NoteId) => Promise<void>;
+  pin: (id: NoteId) => Promise<void>;
+  unpin: (id: NoteId) => Promise<void>;
   remove: (id: NoteId) => Promise<void>;
+  bulkArchive: (ids: NoteId[]) => Promise<void>;
+  bulkDelete: (ids: NoteId[]) => Promise<void>;
 };
 
 export type NoteRepositoryPort = {
@@ -29,5 +33,9 @@ export type NoteRepositoryPort = {
   useFavoriteList: () => { notes: Note[] | undefined; isLoading: boolean };
   useArchivedList: () => { notes: Note[] | undefined; isLoading: boolean };
   useGet: (slug: string) => { note: Note | undefined; isLoading: boolean };
+  useSearch: (search: string) => {
+    notes: Note[] | undefined;
+    isLoading: boolean;
+  };
   useMutations: () => NoteMutations;
 };

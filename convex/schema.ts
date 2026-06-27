@@ -10,11 +10,48 @@ const schema = defineSchema({
     title: v.string(),
     content: v.optional(v.string()),
     preview: v.optional(v.string()),
+    searchableContent: v.optional(v.string()),
+    folderId: v.optional(v.id("folders")),
     isDeleted: v.optional(v.boolean()),
     isArchived: v.optional(v.boolean()),
     isFavorite: v.optional(v.boolean()),
+    isPinned: v.optional(v.boolean()),
     updatedAt: v.optional(v.number()),
-  }).index("by_author_id", ["authorId"]),
+    createdAt: v.optional(v.number()),
+  })
+    .index("by_author_id", ["authorId"])
+    .index("by_author_and_slug", ["authorId", "slug"])
+    .index("by_author_and_folder", ["authorId", "folderId"])
+    .searchIndex("search_content", {
+      searchField: "searchableContent",
+      filterFields: ["authorId", "isDeleted", "isArchived", "folderId"],
+    }),
+
+  folders: defineTable({
+    authorId: v.id("users"),
+    name: v.string(),
+    color: v.string(),
+  })
+    .index("by_author_id", ["authorId"])
+    .index("by_author_and_name", ["authorId", "name"]),
+
+  tags: defineTable({
+    authorId: v.id("users"),
+    name: v.string(),
+    color: v.string(),
+  })
+    .index("by_author_id", ["authorId"])
+    .index("by_author_and_name", ["authorId", "name"]),
+
+  noteTags: defineTable({
+    authorId: v.id("users"),
+    noteId: v.id("notes"),
+    tagId: v.id("tags"),
+  })
+    .index("by_note_id", ["noteId"])
+    .index("by_tag_id", ["tagId"])
+    .index("by_note_and_tag", ["noteId", "tagId"])
+    .index("by_author_id", ["authorId"]),
 });
 
 export default schema;

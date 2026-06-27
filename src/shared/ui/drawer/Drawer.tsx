@@ -7,6 +7,7 @@ import gsap from "gsap";
 import type { ReactNode } from "react";
 
 import { usePortalMounted } from "@/shared/hooks/use-portal-mounted";
+import { useFocusTrap } from "@/shared/hooks/use-focus-trap";
 
 type DrawerProps = {
   open: boolean;
@@ -39,6 +40,7 @@ export function Drawer({
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const mounted = usePortalMounted();
+  useFocusTrap(panelRef, open);
 
   useEffect(() => {
     const overlay = overlayRef.current;
@@ -90,6 +92,10 @@ export function Drawer({
     >
       <div
         ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        tabIndex={-1}
         className={`
           relative h-full w-full ${sizeStyles[size]}
           bg-zinc-950 border-l border-zinc-800
@@ -121,6 +127,7 @@ export function Drawer({
             <button
               type="button"
               onClick={onClose}
+              aria-label="Close drawer"
               className="text-zinc-600 hover:text-zinc-300 transition-colors cursor-pointer p-1 ml-1"
             >
               <X size={18} />

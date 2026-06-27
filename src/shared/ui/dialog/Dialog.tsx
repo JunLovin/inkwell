@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 
 import { Button } from "@/shared/ui/button";
 import { usePortalMounted } from "@/shared/hooks/use-portal-mounted";
+import { useFocusTrap } from "@/shared/hooks/use-focus-trap";
 
 export type DialogAction = {
   label: string;
@@ -48,6 +49,7 @@ export function Dialog({
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const mounted = usePortalMounted();
+  useFocusTrap(panelRef, open);
 
   useEffect(() => {
     const overlay = overlayRef.current;
@@ -108,6 +110,10 @@ export function Dialog({
     >
       <div
         ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        tabIndex={-1}
         className={`
           w-full ${sizeStyles[size]} bg-zinc-900 border border-zinc-800
           rounded-2xl shadow-2xl shadow-black/60 overflow-hidden
@@ -131,6 +137,7 @@ export function Dialog({
             <button
               type="button"
               onClick={onClose}
+              aria-label="Close dialog"
               className="text-zinc-600 hover:text-zinc-300 transition-colors cursor-pointer ml-4 mt-0.5"
             >
               <X size={18} />

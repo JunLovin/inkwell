@@ -45,8 +45,7 @@ export function ProfileSection() {
       setSaving(true);
       await updateProfile(trimmed);
       toast.success({ title: "Profile updated" });
-    } catch (error) {
-      console.error("Failed to update profile:", error);
+    } catch {
       toast.error({
         title: "Could not save profile",
         description: "Try again in a moment.",

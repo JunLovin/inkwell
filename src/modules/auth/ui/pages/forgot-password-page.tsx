@@ -89,8 +89,7 @@ export function ForgotPasswordPage() {
       await requestPasswordReset(data.email);
       setSentTo(data.email);
       setSubmitted(true);
-    } catch (error) {
-      console.error("Forgot password failed:", error);
+    } catch {
       toast.error({
         title: "Could not send reset email",
         description: "Check the address and try again.",

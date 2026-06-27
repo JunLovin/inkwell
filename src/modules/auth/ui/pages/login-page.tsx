@@ -86,8 +86,7 @@ export function LoginPage() {
         description: "Welcome back!",
       });
       router.push("/dashboard");
-    } catch (error) {
-      console.error("Login failed:", error);
+    } catch {
       toast.error({
         title: "Login failed",
         description: "Check your credentials or try again later",
@@ -141,6 +140,7 @@ export function LoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
               className="absolute cursor-pointer right-4 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400 transition-colors duration-200"
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}

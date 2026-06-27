@@ -46,6 +46,9 @@ export function filterAndSort(
   );
 
   return filtered.sort((a, b) => {
+    const aPinned = a.isPinned === true;
+    const bPinned = b.isPinned === true;
+    if (aPinned !== bPinned) return aPinned ? -1 : 1;
     const aTime = getTime(a);
     const bTime = getTime(b);
     return sortOrder === "desc" ? bTime - aTime : aTime - bTime;
