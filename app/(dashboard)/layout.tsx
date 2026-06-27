@@ -1,6 +1,7 @@
 import { AuthGuard } from "@/modules/auth";
 import { AIChatButton } from "@/modules/ai-chat";
 import { DashboardSidenav } from "@/shared/layout/dashboard-sidenav";
+import { ErrorBoundary } from "@/shared/providers/error-boundary";
 import { ContentWrapper } from "./content-wrapper";
 
 export default function DashboardLayout({
@@ -14,7 +15,9 @@ export default function DashboardLayout({
         <aside>
           <DashboardSidenav />
         </aside>
-        <ContentWrapper>{children}</ContentWrapper>
+        <ContentWrapper>
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </ContentWrapper>
       </main>
       <AIChatButton />
     </AuthGuard>

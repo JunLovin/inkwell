@@ -28,6 +28,18 @@ export const convexNoteRepository: NoteRepositoryPort = {
     return { note: note ?? undefined, isLoading: note === undefined };
   },
 
+  useSearch: (search: string) => {
+    const trimmed = search.trim();
+    const notes = useQuery(
+      api.notes.searchNotes,
+      trimmed ? { search: trimmed } : "skip",
+    );
+    return {
+      notes: notes ?? undefined,
+      isLoading: trimmed !== "" && notes === undefined,
+    };
+  },
+
   useMutations: (): NoteMutations => {
     const createMutation = useMutation(api.notes.addNote);
     const updateMutation = useMutation(api.notes.updateNote);
@@ -35,7 +47,11 @@ export const convexNoteRepository: NoteRepositoryPort = {
     const restoreMutation = useMutation(api.notes.restoreNote);
     const favoriteMutation = useMutation(api.notes.markNoteAsFavorite);
     const unfavoriteMutation = useMutation(api.notes.removeFavoriteNote);
+    const pinMutation = useMutation(api.notes.pinNote);
+    const unpinMutation = useMutation(api.notes.unpinNote);
     const deleteMutation = useMutation(api.notes.deleteNote);
+    const bulkArchiveMutation = useMutation(api.notes.bulkArchiveNotes);
+    const bulkDeleteMutation = useMutation(api.notes.bulkDeleteNotes);
 
     return {
       create: async (input) => {
@@ -56,8 +72,20 @@ export const convexNoteRepository: NoteRepositoryPort = {
       unfavorite: async (id) => {
         await unfavoriteMutation({ id });
       },
+      pin: async (id) => {
+        await pinMutation({ id });
+      },
+      unpin: async (id) => {
+        await unpinMutation({ id });
+      },
       remove: async (id) => {
         await deleteMutation({ id });
+      },
+      bulkArchive: async (ids) => {
+        await bulkArchiveMutation({ ids });
+      },
+      bulkDelete: async (ids) => {
+        await bulkDeleteMutation({ ids });
       },
     };
   },

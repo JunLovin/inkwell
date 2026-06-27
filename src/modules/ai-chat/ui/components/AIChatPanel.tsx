@@ -166,6 +166,7 @@ export function AIChatPanel() {
             <button
               type="button"
               onClick={clearContext}
+              aria-label="Clear chat"
               className="w-7 h-7 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors cursor-pointer"
             >
               <Eraser className="w-3.5 h-3.5" />
@@ -175,6 +176,7 @@ export function AIChatPanel() {
         <button
           type="button"
           onClick={close}
+          aria-label="Close assistant"
           className="w-7 h-7 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />

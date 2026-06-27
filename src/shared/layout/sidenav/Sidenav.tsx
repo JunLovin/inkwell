@@ -159,6 +159,7 @@ export function Sidenav({
           <button
             type="button"
             onClick={closeMobile}
+            aria-label="Close menu"
             className="md:hidden text-zinc-600 hover:text-zinc-300 transition-colors cursor-pointer"
           >
             <X size={18} />
@@ -168,6 +169,7 @@ export function Sidenav({
             <button
               type="button"
               onClick={() => setCollapsed(true)}
+              aria-label="Collapse sidebar"
               className="hidden md:flex text-zinc-700 hover:text-zinc-400 transition-colors cursor-pointer"
             >
               <ChevronLeft size={16} />
@@ -208,6 +210,7 @@ export function Sidenav({
             <button
               type="button"
               onClick={() => setCollapsed(false)}
+              aria-label="Expand sidebar"
               className="w-full flex items-center justify-center py-2 text-zinc-700 hover:text-zinc-400 transition-colors cursor-pointer"
             >
               <ChevronRight size={16} />

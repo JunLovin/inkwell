@@ -54,6 +54,8 @@ export function createNotesService(repo: NoteRepositoryPort) {
 
     useNote: (slug: string) => repo.useGet(slug),
 
+    useNotesSearch: (search: string) => repo.useSearch(search),
+
     useNoteCounts: () => {
       const { notes } = repo.useList();
       return useMemo(() => countByStatus(notes ?? []), [notes]);
@@ -77,7 +79,11 @@ export function createNotesService(repo: NoteRepositoryPort) {
         restoreNote: mutations.restore,
         favoriteNote: mutations.favorite,
         unfavoriteNote: mutations.unfavorite,
+        pinNote: mutations.pin,
+        unpinNote: mutations.unpin,
         deleteNote: mutations.remove,
+        bulkArchiveNotes: mutations.bulkArchive,
+        bulkDeleteNotes: mutations.bulkDelete,
       };
     },
   };

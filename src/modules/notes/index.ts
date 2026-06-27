@@ -10,10 +10,12 @@ export {
   useActiveNotes,
   useFavoriteNotes,
   useArchivedNotes,
+  useNotesSearch,
   useNoteCounts,
 } from "./infrastructure/hooks/use-notes";
 export { useNote } from "./infrastructure/hooks/use-note";
 export { useNoteActions } from "./infrastructure/hooks/use-note-actions";
+export { useAutoSaveNote } from "./infrastructure/hooks/use-autosave-note";
 
 export { NoteCard } from "./ui/components/note-card";
 export { NoteEditor, type SaveStatus } from "./ui/components/note-editor";

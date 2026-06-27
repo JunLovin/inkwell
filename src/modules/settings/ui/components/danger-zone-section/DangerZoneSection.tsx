@@ -60,8 +60,7 @@ export function DangerZoneSection() {
         description: "Your notes and account have been removed.",
       });
       router.push("/");
-    } catch (error) {
-      console.error("Account deletion failed:", error);
+    } catch {
       toast.error({
         title: "Could not delete account",
         description: "Try again in a moment.",

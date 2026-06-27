@@ -77,8 +77,7 @@ export function RegisterPage() {
       });
       toast.success("Account created successfully! You are now signed in.");
       router.push("/dashboard");
-    } catch (error) {
-      console.error("Registration error:", error);
+    } catch {
       toast.error("Failed to create account. Please try again.");
     }
   };
@@ -127,6 +126,7 @@ export function RegisterPage() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
               className="text-zinc-600 hover:text-zinc-400 transition-colors duration-200 cursor-pointer"
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -145,6 +145,9 @@ export function RegisterPage() {
             <button
               type="button"
               onClick={() => setShowConfirm(!showConfirm)}
+              aria-label={
+                showConfirm ? "Hide confirmation" : "Show confirmation"
+              }
               className="text-zinc-600 hover:text-zinc-400 transition-colors duration-200 cursor-pointer"
             >
               {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}

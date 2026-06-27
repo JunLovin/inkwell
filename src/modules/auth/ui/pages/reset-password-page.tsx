@@ -84,8 +84,7 @@ export function ResetPasswordPage() {
         description: "Sign in with your new password.",
       });
       router.push("/login");
-    } catch (error) {
-      console.error("Reset failed:", error);
+    } catch {
       toast.error({
         title: "Could not reset password",
         description: "Check the code and try again.",
@@ -142,6 +141,7 @@ export function ResetPasswordPage() {
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
               className="text-zinc-600 hover:text-zinc-400 transition-colors duration-200 cursor-pointer"
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -160,6 +160,9 @@ export function ResetPasswordPage() {
             <button
               type="button"
               onClick={() => setShowConfirm((v) => !v)}
+              aria-label={
+                showConfirm ? "Hide confirmation" : "Show confirmation"
+              }
               className="text-zinc-600 hover:text-zinc-400 transition-colors duration-200 cursor-pointer"
             >
               {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}

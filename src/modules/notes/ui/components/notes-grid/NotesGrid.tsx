@@ -5,27 +5,42 @@ import { Plus, FileText } from "lucide-react";
 import gsap from "gsap";
 
 import { Button } from "@/shared/ui/button";
+import type { Tag } from "@/modules/tags";
+import type { Folder, FolderId } from "@/modules/folders";
 import { NoteCard } from "../note-card";
-import type { Note } from "../../../domain/entities/note";
+import type { Note, NoteId } from "../../../domain/entities/note";
+
+export type TagsByNote = Map<NoteId, Tag[]>;
+export type FoldersById = Map<FolderId, Folder>;
 
 type NotesGridProps = {
   notes: Note[];
+  tagsByNote?: TagsByNote;
+  foldersById?: FoldersById;
+  selectable?: boolean;
+  selectedIds?: Set<NoteId>;
   onNoteClick?: (note: Note) => void;
   onCreateNote?: () => void;
   onFavorite?: (note: Note) => void;
   onArchive?: (note: Note) => void;
   onDelete?: (note: Note) => void;
   onRestore?: (note: Note) => void;
+  onPin?: (note: Note) => void;
 };
 
 export function NotesGrid({
   notes,
+  tagsByNote,
+  foldersById,
+  selectable = false,
+  selectedIds,
   onNoteClick,
   onCreateNote,
   onFavorite,
   onArchive,
   onDelete,
   onRestore,
+  onPin,
 }: NotesGridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -81,11 +96,16 @@ export function NotesGrid({
         <div key={note._id} className="note-card-anim">
           <NoteCard
             note={note}
+            tags={tagsByNote?.get(note._id)}
+            folder={note.folderId ? foldersById?.get(note.folderId) : undefined}
+            selectable={selectable}
+            selected={selectedIds?.has(note._id)}
             onClick={() => onNoteClick?.(note)}
             onFavorite={onFavorite ? () => onFavorite(note) : undefined}
             onArchive={onArchive ? () => onArchive(note) : undefined}
             onDelete={onDelete ? () => onDelete(note) : undefined}
             onRestore={onRestore ? () => onRestore(note) : undefined}
+            onPin={onPin ? () => onPin(note) : undefined}
           />
         </div>
       ))}

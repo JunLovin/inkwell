@@ -118,9 +118,13 @@ function ToastItem({ toast }: { toast: Toast }) {
     };
   }, [duration]);
 
+  const isAssertive = variant === "danger" || variant === "warning";
+
   return (
     <div
       ref={ref}
+      role={isAssertive ? "alert" : "status"}
+      aria-live={isAssertive ? "assertive" : "polite"}
       className={`
         relative flex items-start gap-3 w-80 rounded-2xl border px-4 py-3.5
         shadow-xl shadow-black/40 overflow-hidden
@@ -148,6 +152,7 @@ function ToastItem({ toast }: { toast: Toast }) {
       <button
         type="button"
         onClick={handleRemove}
+        aria-label="Dismiss notification"
         className="shrink-0 mt-0.5 text-zinc-600 hover:text-zinc-400 transition-colors duration-150 cursor-pointer"
       >
         <X size={14} />

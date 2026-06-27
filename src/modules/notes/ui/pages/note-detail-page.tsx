@@ -1,37 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { gsap } from "gsap";
 import { ArrowLeft, Star, Archive, Trash2, Clock } from "lucide-react";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
-import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
-import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
-import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
-import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
-import { ListPlugin } from "@lexical/react/LexicalListPlugin";
-import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
-import { CheckListPlugin } from "@lexical/react/LexicalCheckListPlugin";
-import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
-import { ClickableLinkPlugin } from "@lexical/react/LexicalClickableLinkPlugin";
-import { HorizontalRulePlugin } from "@lexical/react/LexicalHorizontalRulePlugin";
-import { EditorRefPlugin } from "@lexical/react/LexicalEditorRefPlugin";
-import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
-import { TRANSFORMERS } from "@lexical/markdown";
 import { $getRoot } from "lexical";
 import type { LexicalEditor } from "lexical";
 
 import { Tooltip, Loader } from "@/shared/ui";
 import { useToast } from "@/shared/hooks/use-toast";
-import {
-  createEditorConfig,
-  RestoreContentPlugin,
-  FloatingFormatToolbarPlugin,
-} from "@/lib/lexical";
+import { createEditorConfig, EditorPluginsBundle } from "@/lib/lexical";
+import { TagPicker } from "@/modules/tags";
+import { FolderPicker } from "@/modules/folders";
 import { useNote } from "../../infrastructure/hooks/use-note";
 import { useNoteActions } from "../../infrastructure/hooks/use-note-actions";
-import type { SaveStatus } from "../components/note-editor";
+import { useAutoSaveNote } from "../../infrastructure/hooks/use-autosave-note";
+import {
+  PREVIEW_CHAR_LIMIT,
+  type SaveStatus,
+} from "../../domain/services/editor-constants";
 
 type Props = { slug: string };
 
@@ -72,11 +61,14 @@ export function NoteDetailPage({ slug }: Props) {
   const { updateNote, archiveNote, deleteNote, favoriteNote, unfavoriteNote } =
     useNoteActions();
 
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const { scheduleAutoSave, saveStatus } = useAutoSaveNote({
+    noteId: note?._id,
+    updateNote,
+  });
+
   const [titleDraft, setTitleDraft] = useState("");
   const [contentJson, setContentJson] = useState("");
 
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previewRef = useRef<string>("");
   const editorRef = useRef<LexicalEditor | null>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
@@ -85,12 +77,6 @@ export function NoteDetailPage({ slug }: Props) {
   const contentAreaRef = useRef<HTMLDivElement>(null);
   const actionButtonsRef = useRef<HTMLDivElement>(null);
   const animated = useRef(false);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
 
   useEffect(() => {
     if (!note) return;
@@ -130,30 +116,6 @@ export function NoteDetailPage({ slug }: Props) {
     return () => ctx.revert();
   }, [isLoading]);
 
-  const scheduleAutoSave = useCallback(
-    (title: string, json: string) => {
-      if (!note) return;
-      if (timerRef.current) clearTimeout(timerRef.current);
-      setSaveStatus("saving");
-      timerRef.current = setTimeout(async () => {
-        try {
-          await updateNote({
-            id: note._id,
-            title: title.trim() || "Untitled",
-            content: json,
-            preview: previewRef.current,
-          });
-          setSaveStatus("saved");
-          setTimeout(() => setSaveStatus("idle"), 2000);
-        } catch {
-          setSaveStatus("idle");
-          toast.error({ title: "Failed to save note" });
-        }
-      }, 2000);
-    },
-    [note, updateNote, toast],
-  );
-
   const editorConfig = useMemo(
     () => createEditorConfig("inkwell-note-detail"),
     [note?._id],
@@ -172,7 +134,7 @@ export function NoteDetailPage({ slug }: Props) {
     setTitleDraft(val);
     e.target.style.height = "auto";
     e.target.style.height = `${e.target.scrollHeight}px`;
-    scheduleAutoSave(val, contentJson);
+    scheduleAutoSave(val, contentJson, previewRef.current);
   };
 
   const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -295,7 +257,7 @@ export function NoteDetailPage({ slug }: Props) {
             />
 
             {note.updatedAt && (
-              <div className="flex items-center gap-1.5 mb-10">
+              <div className="flex items-center gap-1.5 mb-4">
                 <Clock size={11} className="text-zinc-700 shrink-0" />
                 <span className="text-xs text-zinc-700">
                   Last edited {timeAgo(new Date(note.updatedAt))}
@@ -303,11 +265,19 @@ export function NoteDetailPage({ slug }: Props) {
               </div>
             )}
 
+            <div className="mb-10 flex flex-wrap items-center gap-3">
+              <FolderPicker
+                noteId={note._id}
+                currentFolderId={note.folderId ?? null}
+              />
+              <TagPicker noteId={note._id} />
+            </div>
+
             <div
               className="relative"
               onClick={(e) => e.stopPropagation()}
             >
-              <RichTextPlugin
+              <EditorPluginsBundle
                 contentEditable={
                   <ContentEditable
                     aria-placeholder="Start writing..."
@@ -320,32 +290,20 @@ export function NoteDetailPage({ slug }: Props) {
                     }
                   />
                 }
-                ErrorBoundary={LexicalErrorBoundary}
+                editorRef={editorRef}
+                restoreContent={note.content || undefined}
+                onChange={(editorState) => {
+                  const json = JSON.stringify(editorState.toJSON());
+                  if (json === contentJson) return;
+                  const preview = editorState.read(() =>
+                    $getRoot().getTextContent().slice(0, PREVIEW_CHAR_LIMIT),
+                  );
+                  previewRef.current = preview;
+                  setContentJson(json);
+                  scheduleAutoSave(titleDraft, json, preview);
+                }}
               />
             </div>
-
-            <HistoryPlugin />
-            <ListPlugin />
-            <CheckListPlugin />
-            <TabIndentationPlugin />
-            <LinkPlugin />
-            <ClickableLinkPlugin />
-            <HorizontalRulePlugin />
-            <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
-            <EditorRefPlugin editorRef={editorRef} />
-            <FloatingFormatToolbarPlugin />
-            {note.content && <RestoreContentPlugin content={note.content} />}
-            <OnChangePlugin
-              onChange={(editorState) => {
-                const json = JSON.stringify(editorState.toJSON());
-                if (json === contentJson) return;
-                previewRef.current = editorState.read(() =>
-                  $getRoot().getTextContent().slice(0, 150),
-                );
-                setContentJson(json);
-                scheduleAutoSave(titleDraft, json);
-              }}
-            />
           </div>
         </div>
       </LexicalComposer>
