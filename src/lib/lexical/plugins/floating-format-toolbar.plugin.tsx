@@ -12,7 +12,16 @@ import {
 } from "lexical";
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
 import { gsap } from "gsap";
-import { Bold, Italic, Underline, Strikethrough, Code2, Link, X, Check } from "lucide-react";
+import {
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  Code2,
+  Link,
+  X,
+  Check,
+} from "lucide-react";
 
 import { usePortalMounted } from "@/shared/hooks/use-portal-mounted";
 
@@ -42,7 +51,8 @@ export function FloatingFormatToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
   const mounted = usePortalMounted();
   const [coords, setCoords] = useState<Coords | null>(null);
-  const [activeFormats, setActiveFormats] = useState<ActiveFormats>(defaultFormats);
+  const [activeFormats, setActiveFormats] =
+    useState<ActiveFormats>(defaultFormats);
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkInputValue, setLinkInputValue] = useState("");
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -76,9 +86,12 @@ export function FloatingFormatToolbarPlugin() {
             .getNodes()
             .find((node) => $isLinkNode(node.getParent()));
           const isLink = !!linkNode;
-          const linkUrl = isLink && $isLinkNode(linkNode?.getParent())
-            ? (linkNode.getParent() as { getURL?: () => string }).getURL?.() ?? ""
-            : "";
+          const linkUrl =
+            isLink && $isLinkNode(linkNode?.getParent())
+              ? ((
+                  linkNode.getParent() as { getURL?: () => string }
+                ).getURL?.() ?? "")
+              : "";
 
           setActiveFormats({
             bold: sel.hasFormat("bold"),
@@ -118,9 +131,8 @@ export function FloatingFormatToolbarPlugin() {
   useEffect(() => {
     if (showLinkInput && linkInputRef.current) {
       linkInputRef.current.focus();
-      setLinkInputValue(activeFormats.linkUrl);
     }
-  }, [showLinkInput, activeFormats.linkUrl]);
+  }, [showLinkInput]);
 
   const handleLinkSubmit = () => {
     const url = linkInputValue.trim();
@@ -150,11 +162,31 @@ export function FloatingFormatToolbarPlugin() {
   if (!mounted || !coords) return null;
 
   const formatButtons = [
-    { format: "bold" as const, icon: <Bold size={13} />, active: activeFormats.bold },
-    { format: "italic" as const, icon: <Italic size={13} />, active: activeFormats.italic },
-    { format: "underline" as const, icon: <Underline size={13} />, active: activeFormats.underline },
-    { format: "strikethrough" as const, icon: <Strikethrough size={13} />, active: activeFormats.strikethrough },
-    { format: "code" as const, icon: <Code2 size={13} />, active: activeFormats.code },
+    {
+      format: "bold" as const,
+      icon: <Bold size={13} />,
+      active: activeFormats.bold,
+    },
+    {
+      format: "italic" as const,
+      icon: <Italic size={13} />,
+      active: activeFormats.italic,
+    },
+    {
+      format: "underline" as const,
+      icon: <Underline size={13} />,
+      active: activeFormats.underline,
+    },
+    {
+      format: "strikethrough" as const,
+      icon: <Strikethrough size={13} />,
+      active: activeFormats.strikethrough,
+    },
+    {
+      format: "code" as const,
+      icon: <Code2 size={13} />,
+      active: activeFormats.code,
+    },
   ];
 
   return createPortal(
@@ -204,7 +236,9 @@ export function FloatingFormatToolbarPlugin() {
             <button
               key={format}
               type="button"
-              onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, format)}
+              onClick={() =>
+                editor.dispatchCommand(FORMAT_TEXT_COMMAND, format)
+              }
               className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${
                 active
                   ? "bg-zinc-700 text-white"
@@ -217,7 +251,10 @@ export function FloatingFormatToolbarPlugin() {
           <div className="w-px h-4 bg-zinc-800 mx-0.5" />
           <button
             type="button"
-            onClick={() => setShowLinkInput(true)}
+            onClick={() => {
+              setLinkInputValue(activeFormats.linkUrl);
+              setShowLinkInput(true);
+            }}
             className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${
               activeFormats.link
                 ? "bg-zinc-700 text-white"

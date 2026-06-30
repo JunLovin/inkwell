@@ -68,6 +68,7 @@ export function NoteDetailPage({ slug }: Props) {
 
   const [titleDraft, setTitleDraft] = useState("");
   const [contentJson, setContentJson] = useState("");
+  const [syncedNoteId, setSyncedNoteId] = useState<string | null>(null);
 
   const previewRef = useRef<string>("");
   const editorRef = useRef<LexicalEditor | null>(null);
@@ -78,15 +79,19 @@ export function NoteDetailPage({ slug }: Props) {
   const actionButtonsRef = useRef<HTMLDivElement>(null);
   const animated = useRef(false);
 
-  useEffect(() => {
-    if (!note) return;
+  if (note && note._id !== syncedNoteId) {
+    setSyncedNoteId(note._id);
     setTitleDraft(note.title || "");
     setContentJson(note.content ?? "");
+  }
+
+  useEffect(() => {
+    if (!note) return;
     if (titleRef.current) {
       titleRef.current.style.height = "auto";
       titleRef.current.style.height = `${titleRef.current.scrollHeight}px`;
     }
-  }, [note?._id]);
+  }, [note]);
 
   useEffect(() => {
     if (isLoading || animated.current) return;
@@ -118,7 +123,7 @@ export function NoteDetailPage({ slug }: Props) {
 
   const editorConfig = useMemo(
     () => createEditorConfig("inkwell-note-detail"),
-    [note?._id],
+    [],
   );
 
   if (isLoading || !note) {
@@ -203,7 +208,12 @@ export function NoteDetailPage({ slug }: Props) {
         <SaveStatusIndicator status={saveStatus} />
 
         <div ref={actionButtonsRef} className="flex items-center gap-0.5">
-          <Tooltip content={note.isFavorite ? "Remove from favorites" : "Add to favorites"} side="bottom">
+          <Tooltip
+            content={
+              note.isFavorite ? "Remove from favorites" : "Add to favorites"
+            }
+            side="bottom"
+          >
             <button
               type="button"
               onClick={handleFavorite}
@@ -213,7 +223,10 @@ export function NoteDetailPage({ slug }: Props) {
                   : "text-zinc-500 hover:text-amber-400 hover:bg-amber-500/10"
               }`}
             >
-              <Star size={15} fill={note.isFavorite ? "currentColor" : "none"} />
+              <Star
+                size={15}
+                fill={note.isFavorite ? "currentColor" : "none"}
+              />
             </button>
           </Tooltip>
           <Tooltip content="Archive note" side="bottom">
@@ -273,10 +286,7 @@ export function NoteDetailPage({ slug }: Props) {
               <TagPicker noteId={note._id} />
             </div>
 
-            <div
-              className="relative"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className="relative" onClick={(e) => e.stopPropagation()}>
               <EditorPluginsBundle
                 contentEditable={
                   <ContentEditable

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import {
   X,
@@ -73,7 +73,7 @@ function ToastItem({ toast }: { toast: Toast }) {
   const config = variantConfig[variant];
   const duration = toast.duration ?? DEFAULT_DURATION;
 
-  const handleRemove = () => {
+  const handleRemove = useCallback(() => {
     const el = ref.current;
     if (!el) return;
     gsap.to(el, {
@@ -84,7 +84,7 @@ function ToastItem({ toast }: { toast: Toast }) {
       ease: "power2.in",
       onComplete: () => remove(toast.id),
     });
-  };
+  }, [remove, toast.id]);
 
   useEffect(() => {
     const el = ref.current;
@@ -116,7 +116,7 @@ function ToastItem({ toast }: { toast: Toast }) {
       clearTimeout(exitTimer);
       tl.kill();
     };
-  }, [duration]);
+  }, [duration, handleRemove]);
 
   const isAssertive = variant === "danger" || variant === "warning";
 

@@ -28,6 +28,10 @@ export const chat = action({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw errors.notAuthenticated();
 
+    if (process.env.AI_TEST_MODE === "true") {
+      return "[stub] reply";
+    }
+
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw errors.aiNotConfigured();
 

@@ -135,10 +135,7 @@ export function NotesListPage() {
     ? foldersById.get(selectedFolderId)
     : undefined;
 
-  const tagIndex = useMemo(
-    () => buildNoteTagsIndex(tagLinks),
-    [tagLinks],
-  );
+  const tagIndex = useMemo(() => buildNoteTagsIndex(tagLinks), [tagLinks]);
 
   const tagsByNote = useMemo(() => {
     const tagMap = new Map((allTags ?? []).map((t) => [t._id, t]));
@@ -238,7 +235,7 @@ export function NotesListPage() {
     setDraftContent("");
   };
 
-  const handleCreateNote = useCallback(async () => {
+  const handleCreateNote = async () => {
     try {
       setSaveStatus("saving");
       await createNote({
@@ -259,7 +256,7 @@ export function NotesListPage() {
         description: "Something went wrong, try again later.",
       });
     }
-  }, [draftTitle, draftContent, draftPreview, createNote, toast]);
+  };
 
   const handleContentChange = useCallback(
     (content: string, preview: string) => {
