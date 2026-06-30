@@ -67,25 +67,29 @@ export function NoteDrawer({ note, open, onClose }: NoteDrawerProps) {
 
   const [titleDraft, setTitleDraft] = useState("");
   const [contentJson, setContentJson] = useState("");
+  const [syncedNoteId, setSyncedNoteId] = useState<string | null>(null);
 
   const previewRef = useRef<string>("");
   const editorRef = useRef<LexicalEditor | null>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => {
-    if (!note) return;
+  if (note && note._id !== syncedNoteId) {
+    setSyncedNoteId(note._id);
     setTitleDraft(note.title || "");
     setContentJson(note.content ?? "");
+  }
+
+  useEffect(() => {
+    if (!note) return;
     if (titleRef.current) {
       titleRef.current.style.height = "auto";
       titleRef.current.style.height = `${titleRef.current.scrollHeight}px`;
     }
-  }, [note?._id]);
+  }, [note]);
 
   const editorConfig = useMemo(
     () => createEditorConfig("inkwell-note-drawer"),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [note?._id],
+    [],
   );
 
   const handleTitleChange = useCallback(
@@ -169,7 +173,9 @@ export function NoteDrawer({ note, open, onClose }: NoteDrawerProps) {
 
       {!note.isArchived && (
         <Tooltip
-          content={note.isFavorite ? "Remove from favorites" : "Add to favorites"}
+          content={
+            note.isFavorite ? "Remove from favorites" : "Add to favorites"
+          }
           side="bottom"
         >
           <button

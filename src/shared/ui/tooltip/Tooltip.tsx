@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, type ReactNode } from "react";
+import { useState, useCallback, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { usePortalMounted } from "@/shared/hooks/use-portal-mounted";
 
 type Side = "top" | "bottom" | "left" | "right";
 
@@ -36,12 +37,8 @@ const transformMap: Record<Side, string> = {
 export function Tooltip({ content, children, side = "top" }: TooltipProps) {
   const [visible, setVisible] = useState(false);
   const [coords, setCoords] = useState<Coords>({ x: 0, y: 0 });
-  const [mounted, setMounted] = useState(false);
+  const mounted = usePortalMounted();
   const wrapperRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const show = useCallback(() => {
     const el = wrapperRef.current;

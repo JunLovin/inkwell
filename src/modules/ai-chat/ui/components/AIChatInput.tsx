@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { ArrowUp, Plus, Image, Paperclip } from "lucide-react";
+import { ArrowUp, Plus, Image as ImageIcon, Paperclip } from "lucide-react";
 import gsap from "gsap";
 import { useAIChatStore } from "../../infrastructure/stores/ai-chat.store";
 import type { AttachedFile } from "../../domain/entities/chat-message";
@@ -93,9 +93,7 @@ export function AIChatInput({ onSubmit }: Props) {
       reader.readAsDataURL(file);
     });
 
-  const handleFileSelected = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
@@ -107,8 +105,7 @@ export function AIChatInput({ onSubmit }: Props) {
         data,
       };
       addAttachedFile(attachment);
-    } catch {
-    }
+    } catch {}
     e.target.value = "";
   };
 
@@ -117,7 +114,10 @@ export function AIChatInput({ onSubmit }: Props) {
   return (
     <div className="p-3">
       <div className="flex items-end gap-2 bg-zinc-800/50 border border-zinc-700/60 rounded-2xl px-3 py-2.5">
-        <div ref={plusContainerRef} className="relative shrink-0 self-end mb-0.5">
+        <div
+          ref={plusContainerRef}
+          className="relative shrink-0 self-end mb-0.5"
+        >
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
@@ -139,7 +139,7 @@ export function AIChatInput({ onSubmit }: Props) {
                 }}
                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-zinc-400 hover:bg-zinc-800 hover:text-white transition-all duration-150 cursor-pointer"
               >
-                <Image className="w-3.5 h-3.5 shrink-0" />
+                <ImageIcon className="w-3.5 h-3.5 shrink-0" />
                 <span>Upload Image</span>
               </button>
               <button
