@@ -19,34 +19,16 @@ import { useAutoSaveNote } from "../../../infrastructure/hooks/use-autosave-note
 import type { Note } from "../../../domain/entities/note";
 import {
   PREVIEW_CHAR_LIMIT,
-  type SaveStatus,
+  saveStatusColor,
+  saveStatusShortLabel,
 } from "../../../domain/services/editor-constants";
+import { timeAgo } from "../../../domain/services/time-ago";
 
 type NoteDrawerProps = {
   note: Note | null;
   open: boolean;
   onClose: () => void;
 };
-
-const saveStatusColor: Record<SaveStatus, string> = {
-  idle: "text-transparent",
-  saving: "text-zinc-600",
-  saved: "text-zinc-500",
-};
-
-const saveStatusLabel: Record<SaveStatus, string> = {
-  idle: "saved",
-  saving: "Saving...",
-  saved: "Saved",
-};
-
-function timeAgo(ts: number) {
-  const diff = (Date.now() - ts) / 1000;
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
-}
 
 export function NoteDrawer({ note, open, onClose }: NoteDrawerProps) {
   const { toast } = useToast();
@@ -168,7 +150,7 @@ export function NoteDrawer({ note, open, onClose }: NoteDrawerProps) {
       <span
         className={`text-[11px] select-none transition-colors duration-300 mr-1.5 ${saveStatusColor[saveStatus]}`}
       >
-        {saveStatusLabel[saveStatus]}
+        {saveStatusShortLabel[saveStatus]}
       </span>
 
       {!note.isArchived && (
@@ -257,7 +239,7 @@ export function NoteDrawer({ note, open, onClose }: NoteDrawerProps) {
               <div className="flex items-center gap-1.5 mt-2.5">
                 <Clock size={10} className="text-zinc-700 shrink-0" />
                 <span className="text-[11px] text-zinc-700">
-                  Last edited {timeAgo(note.updatedAt)}
+                  Last edited {timeAgo(new Date(note.updatedAt))}
                 </span>
               </div>
             )}

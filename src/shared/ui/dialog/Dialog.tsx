@@ -48,13 +48,20 @@ export function Dialog({
 }: DialogProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const openRef = useRef(open);
   const mounted = usePortalMounted();
   useFocusTrap(panelRef, open);
+
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
 
   useEffect(() => {
     const overlay = overlayRef.current;
     const panel = panelRef.current;
     if (!overlay || !panel) return;
+
+    gsap.killTweensOf([overlay, panel]);
 
     if (open) {
       gsap.set(overlay, { display: "flex" });
@@ -76,6 +83,7 @@ export function Dialog({
         },
       );
     } else {
+      const isStillClosed = () => !openRef.current;
       gsap.to(overlay, { opacity: 0, duration: 0.2, ease: "power2.in" });
       gsap.to(panel, {
         opacity: 0,
@@ -85,7 +93,7 @@ export function Dialog({
         duration: 0.2,
         ease: "power2.in",
         onComplete: () => {
-          gsap.set(overlay, { display: "none" });
+          if (isStillClosed()) gsap.set(overlay, { display: "none" });
         },
       });
     }

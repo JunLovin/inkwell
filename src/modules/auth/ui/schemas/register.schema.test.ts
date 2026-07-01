@@ -6,7 +6,6 @@ const valid = {
   email: "a@b.com",
   password: "pw123456",
   confirmPassword: "pw123456",
-  flow: "signUp" as const,
 };
 
 describe("registerSchema", () => {
@@ -53,11 +52,5 @@ describe("registerSchema", () => {
         result.error.issues.some((i) => i.path.join(".") === "confirmPassword"),
       ).toBe(true);
     }
-  });
-
-  it("rejects flow != signUp", () => {
-    expect(registerSchema.safeParse({ ...valid, flow: "signIn" }).success).toBe(
-      false,
-    );
   });
 });

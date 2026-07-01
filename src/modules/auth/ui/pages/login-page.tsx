@@ -2,11 +2,11 @@
 
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import gsap from "gsap";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { loginSchema, type LoginSchema } from "../schemas/login.schema";
 import { Button, Divider, Input, Field } from "@/shared/ui";
@@ -16,11 +16,22 @@ import {
   useAuthSession,
 } from "../../infrastructure/hooks/use-auth";
 
+function sanitizeNext(next: string | null): string {
+  if (!next) return "/dashboard";
+  if (!next.startsWith("/") || next.startsWith("//")) return "/dashboard";
+  return next;
+}
+
 export function LoginPage() {
   const { signIn } = useAuthActions();
   const { toast } = useToast();
   const { isAuthenticated } = useAuthSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextTarget = useMemo(
+    () => sanitizeNext(searchParams.get("next")),
+    [searchParams],
+  );
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -41,9 +52,9 @@ export function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/dashboard");
+      router.push(nextTarget);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, nextTarget]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -85,7 +96,7 @@ export function LoginPage() {
         title: "Login successful",
         description: "Welcome back!",
       });
-      router.push("/dashboard");
+      router.push(nextTarget);
     } catch {
       toast.error({
         title: "Login failed",
@@ -134,7 +145,7 @@ export function LoginPage() {
             <Input
               {...register("password")}
               type={showPassword ? "text" : "password"}
-              autoComplete="off"
+              autoComplete="current-password"
               placeholder="••••••••"
             />
             <button
@@ -146,12 +157,6 @@ export function LoginPage() {
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
-          <input
-            {...register("flow")}
-            name="flow"
-            type="hidden"
-            value="signIn"
-          />
         </Field>
 
         <Button

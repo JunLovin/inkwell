@@ -1,15 +1,12 @@
-export const FOLDER_COLORS = [
-  "emerald",
-  "blue",
-  "amber",
-  "red",
-  "purple",
-  "pink",
-  "cyan",
-  "indigo",
-] as const;
+import {
+  COLOR_PALETTE,
+  type PaletteColor,
+  pickColorFromString,
+  safeColor,
+} from "@/shared/domain/color";
 
-export type FolderColor = (typeof FOLDER_COLORS)[number];
+export const FOLDER_COLORS = COLOR_PALETTE;
+export type FolderColor = PaletteColor;
 
 const swatchStyles: Record<FolderColor, string> = {
   emerald: "text-emerald-400",
@@ -33,22 +30,12 @@ const badgeStyles: Record<FolderColor, string> = {
   indigo: "bg-indigo-500/10 text-indigo-300 border-indigo-500/30",
 };
 
-function isFolderColor(value: string): value is FolderColor {
-  return (FOLDER_COLORS as readonly string[]).includes(value);
-}
-
 export function folderIconClasses(color: string): string {
-  return isFolderColor(color) ? swatchStyles[color] : swatchStyles.emerald;
+  return swatchStyles[safeColor(color)];
 }
 
 export function folderBadgeClasses(color: string): string {
-  return isFolderColor(color) ? badgeStyles[color] : badgeStyles.emerald;
+  return badgeStyles[safeColor(color)];
 }
 
-export function pickFolderColor(name: string): FolderColor {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = (hash * 31 + name.charCodeAt(i)) | 0;
-  }
-  return FOLDER_COLORS[Math.abs(hash) % FOLDER_COLORS.length];
-}
+export const pickFolderColor = pickColorFromString;

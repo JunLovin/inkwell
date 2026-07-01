@@ -52,7 +52,9 @@ export function Select({
     if (!menu) return;
 
     if (open) {
-      const rect = triggerRef.current!.getBoundingClientRect();
+      const trigger = triggerRef.current;
+      if (!trigger) return;
+      const rect = trigger.getBoundingClientRect();
       setCoords({
         top: rect.bottom + 8,
         left: rect.left,
@@ -79,7 +81,9 @@ export function Select({
         filter: "blur(3px)",
         duration: 0.15,
         ease: "power2.in",
-        onComplete: () => { gsap.set(menu, { display: "none" }); },
+        onComplete: () => {
+          gsap.set(menu, { display: "none" });
+        },
       });
     }
   }, [open]);

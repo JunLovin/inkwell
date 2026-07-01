@@ -51,10 +51,8 @@ export function Loader({ variant = "bar", size = "md", label }: LoaderProps) {
         className={`w-full bg-zinc-800 rounded-full overflow-hidden ${barSize[size]}`}
       >
         <div
-          className={`h-full bg-zinc-400 rounded-full animate-[loading-bar_1.4s_ease-in-out_infinite]`}
-          style={{
-            animation: "loading-bar 1.4s ease-in-out infinite",
-          }}
+          className="h-full bg-zinc-400 rounded-full origin-left"
+          style={{ animation: "loading-bar 1.4s ease-in-out infinite" }}
         />
       </div>
       {label && (
@@ -62,14 +60,6 @@ export function Loader({ variant = "bar", size = "md", label }: LoaderProps) {
           {label}
         </p>
       )}
-
-      <style>{`
-        @keyframes loading-bar {
-          0% { transform: translateX(-100%) scaleX(0.3); }
-          50% { transform: translateX(50%) scaleX(0.6); }
-          100% { transform: translateX(200%) scaleX(0.3); }
-        }
-      `}</style>
     </div>
   );
 }

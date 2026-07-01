@@ -46,7 +46,9 @@ export function Dropdown({
     if (!menu) return;
 
     if (open) {
-      const rect = containerRef.current!.getBoundingClientRect();
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
       setCoords({
         top: rect.bottom + 8,
         left: align === "right" ? rect.right - width : rect.left,
@@ -73,7 +75,9 @@ export function Dropdown({
         filter: "blur(3px)",
         duration: 0.15,
         ease: "power2.in",
-        onComplete: () => { gsap.set(menu, { display: "none" }); },
+        onComplete: () => {
+          gsap.set(menu, { display: "none" });
+        },
       });
     }
   }, [open, align, width]);

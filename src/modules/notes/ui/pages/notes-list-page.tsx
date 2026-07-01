@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Archive,
@@ -18,7 +18,8 @@ import { useToast } from "@/shared/hooks/use-toast";
 import { Button, Divider, Input, Loader } from "@/shared/ui";
 import { Dialog } from "@/shared/ui/dialog";
 
-import { NoteEditor, type SaveStatus } from "../components/note-editor";
+import { NoteEditor } from "../components/note-editor";
+import type { SaveStatus } from "../../domain/services/editor-constants";
 import { NoteDrawer } from "../components/note-drawer";
 import { NotesGrid } from "../components/notes-grid";
 import {
@@ -87,8 +88,6 @@ export function NotesListPage() {
   const [draftContent, setDraftContent] = useState("");
   const [draftPreview, setDraftPreview] = useState("");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
-
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -190,12 +189,13 @@ export function NotesListPage() {
   const handleBulkArchive = useCallback(async () => {
     if (selectedIds.size === 0) return;
     try {
-      await bulkArchiveNotes(Array.from(selectedIds));
+      const { processed, skipped } = await bulkArchiveNotes(
+        Array.from(selectedIds),
+      );
+      const noun = processed === 1 ? "note" : "notes";
       toast.success({
-        title:
-          selectedIds.size === 1
-            ? "Note archived"
-            : `${selectedIds.size} notes archived`,
+        title: `${processed} ${noun} archived`,
+        description: skipped > 0 ? `${skipped} skipped` : undefined,
       });
       exitSelectionMode();
     } catch {
@@ -206,12 +206,13 @@ export function NotesListPage() {
   const handleBulkDelete = useCallback(async () => {
     if (selectedIds.size === 0) return;
     try {
-      await bulkDeleteNotes(Array.from(selectedIds));
+      const { processed, skipped } = await bulkDeleteNotes(
+        Array.from(selectedIds),
+      );
+      const noun = processed === 1 ? "note" : "notes";
       toast.success({
-        title:
-          selectedIds.size === 1
-            ? "Note deleted"
-            : `${selectedIds.size} notes deleted`,
+        title: `${processed} ${noun} deleted`,
+        description: skipped > 0 ? `${skipped} skipped` : undefined,
       });
       exitSelectionMode();
     } catch {
@@ -228,11 +229,11 @@ export function NotesListPage() {
   };
 
   const handleCloseNoteDialog = () => {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     setSaveStatus("idle");
     setOpenNoteDialog(false);
-    setDraftTitle("Untitled");
+    setDraftTitle("");
     setDraftContent("");
+    setDraftPreview("");
   };
 
   const handleCreateNote = async () => {
@@ -482,7 +483,6 @@ export function NotesListPage() {
           onTitleChange={setDraftTitle}
           onContentChange={handleContentChange}
           onClose={handleCloseNoteDialog}
-          saveStatus={saveStatus}
         />
         <div className="px-8 pb-6 flex justify-end gap-2 shrink-0">
           <Button variant="ghost" size="sm" onClick={handleCloseNoteDialog}>

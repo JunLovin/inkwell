@@ -22,6 +22,11 @@ export function createTagsService(repo: TagRepositoryPort) {
         deleteTag: m.remove,
         assignTagToNote: m.assignToNote,
         unassignTagFromNote: m.unassignFromNote,
+        createAndAssignTag: async (
+          noteId: NoteId,
+          name: string,
+          color: string,
+        ) => m.createAndAssign({ noteId, name, color }),
       };
     },
   };

@@ -48,3 +48,15 @@ body {
   background: #111111;
   border-radius: 10px;
 }
+
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-100%) scaleX(0.3);
+  }
+  50% {
+    transform: translateX(50%) scaleX(0.6);
+  }
+  100% {
+    transform: translateX(200%) scaleX(0.3);
+  }
+}

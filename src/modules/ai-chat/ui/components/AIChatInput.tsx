@@ -3,17 +3,36 @@
 import { useRef, useState, useEffect } from "react";
 import { ArrowUp, Plus, Image as ImageIcon, Paperclip } from "lucide-react";
 import gsap from "gsap";
+
+import { useToast } from "@/shared/hooks/use-toast";
 import { useAIChatStore } from "../../infrastructure/stores/ai-chat.store";
 import type { AttachedFile } from "../../domain/entities/chat-message";
+import {
+  MAX_ATTACHMENT_BYTES,
+  ALLOWED_ATTACHMENT_MIME_TYPES,
+  isAllowedAttachmentMime,
+} from "../../domain/services/attachment-limits";
 
 type Props = {
   onSubmit: (text: string) => void;
 };
 
+const acceptImage = "image/*";
+const acceptFile = ALLOWED_ATTACHMENT_MIME_TYPES.filter(
+  (m) => !m.startsWith("image/"),
+).join(",");
+
+function humanBytes(bytes: number): string {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(0)}MB`;
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)}KB`;
+  return `${bytes}B`;
+}
+
 export function AIChatInput({ onSubmit }: Props) {
   const [value, setValue] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const { isLoading, addAttachedFile } = useAIChatStore();
+  const { toast } = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const plusContainerRef = useRef<HTMLDivElement>(null);
@@ -95,18 +114,39 @@ export function AIChatInput({ onSubmit }: Props) {
 
   const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
+
+    if (!isAllowedAttachmentMime(file.type)) {
+      toast.error({
+        title: "Unsupported file type",
+        description: `${file.type || "unknown"} isn't supported yet.`,
+      });
+      return;
+    }
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      toast.error({
+        title: "File is too large",
+        description: `Max ${humanBytes(MAX_ATTACHMENT_BYTES)}, your file is ${humanBytes(file.size)}.`,
+      });
+      return;
+    }
+
     try {
       const data = await readFileAsBase64(file);
       const attachment: AttachedFile = {
-        id: Math.random().toString(36).slice(2),
+        id:
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : Math.random().toString(36).slice(2),
         name: file.name,
         mimeType: file.type,
         data,
       };
       addAttachedFile(attachment);
-    } catch {}
-    e.target.value = "";
+    } catch {
+      toast.error({ title: "Could not read file" });
+    }
   };
 
   const canSend = value.trim().length > 0 && !isLoading;
@@ -160,14 +200,14 @@ export function AIChatInput({ onSubmit }: Props) {
           <input
             ref={imageInputRef}
             type="file"
-            accept="image/*"
+            accept={acceptImage}
             className="hidden"
             onChange={handleFileSelected}
           />
           <input
             ref={fileInputRef}
             type="file"
-            accept=".pdf,.txt,.md,.csv,.json"
+            accept={acceptFile}
             className="hidden"
             onChange={handleFileSelected}
           />

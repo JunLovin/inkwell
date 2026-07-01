@@ -9,11 +9,16 @@ const ConsoleOTP: EmailConfig = {
   from: "Inkwell <noreply@inkwell.app>",
   maxAge: 60 * 15,
   async generateVerificationToken() {
-    return Array.from({ length: 6 }, () =>
-      Math.floor(Math.random() * 10),
-    ).join("");
+    return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join(
+      "",
+    );
   },
   async sendVerificationRequest({ identifier, token }) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "Password reset transport is not configured. Wire an email provider before enabling password reset in production.",
+      );
+    }
     console.warn(
       `[auth] password reset requested for ${identifier} — code: ${token}`,
     );

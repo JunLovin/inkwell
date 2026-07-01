@@ -9,7 +9,10 @@ import gsap from "gsap";
 import { useRouter } from "next/navigation";
 
 import { Button, Divider, Input } from "@/shared/ui";
-import { registerSchema, type RegisterSchema } from "../schemas/register.schema";
+import {
+  registerSchema,
+  type RegisterSchema,
+} from "../schemas/register.schema";
 import { useToast } from "@/shared/hooks/use-toast";
 import { useAuthActions } from "../../infrastructure/hooks/use-auth";
 
@@ -75,10 +78,16 @@ export function RegisterPage() {
         name: data.name,
         password: data.password,
       });
-      toast.success("Account created successfully! You are now signed in.");
+      toast.success({
+        title: "Account created",
+        description: "You are now signed in.",
+      });
       router.push("/dashboard");
     } catch {
-      toast.error("Failed to create account. Please try again.");
+      toast.error({
+        title: "Failed to create account",
+        description: "Please try again.",
+      });
     }
   };
 
@@ -154,8 +163,6 @@ export function RegisterPage() {
             </button>
           }
         />
-
-        <input {...register("flow")} name="flow" type="hidden" value="signUp" />
 
         <Button
           type="submit"

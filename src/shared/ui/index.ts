@@ -16,4 +16,4 @@ export { Loader } from "./loader/Loader";
 export { List } from "./list/List";
 export { Tooltip } from "./tooltip";
 export { Dialog } from "./dialog";
-export { Field } from "./Field";
+export { Field } from "./field";

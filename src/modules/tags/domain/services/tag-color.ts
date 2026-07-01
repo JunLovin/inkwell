@@ -1,15 +1,12 @@
-export const TAG_COLORS = [
-  "emerald",
-  "blue",
-  "amber",
-  "red",
-  "purple",
-  "pink",
-  "cyan",
-  "indigo",
-] as const;
+import {
+  COLOR_PALETTE,
+  type PaletteColor,
+  pickColorFromString,
+  safeColor,
+} from "@/shared/domain/color";
 
-export type TagColor = (typeof TAG_COLORS)[number];
+export const TAG_COLORS = COLOR_PALETTE;
+export type TagColor = PaletteColor;
 
 const colorStyles: Record<TagColor, string> = {
   emerald: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
@@ -33,22 +30,12 @@ const swatchStyles: Record<TagColor, string> = {
   indigo: "bg-indigo-400",
 };
 
-function isTagColor(value: string): value is TagColor {
-  return (TAG_COLORS as readonly string[]).includes(value);
-}
-
 export function tagColorClasses(color: string): string {
-  return isTagColor(color) ? colorStyles[color] : colorStyles.emerald;
+  return colorStyles[safeColor(color)];
 }
 
 export function tagSwatchClasses(color: string): string {
-  return isTagColor(color) ? swatchStyles[color] : swatchStyles.emerald;
+  return swatchStyles[safeColor(color)];
 }
 
-export function pickColorFromName(name: string): TagColor {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = (hash * 31 + name.charCodeAt(i)) | 0;
-  }
-  return TAG_COLORS[Math.abs(hash) % TAG_COLORS.length];
-}
+export const pickColorFromName = pickColorFromString;

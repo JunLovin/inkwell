@@ -5,10 +5,7 @@ import { Mail } from "lucide-react";
 
 import { Avatar, Button, Card, Field, Input } from "@/shared/ui";
 import { useToast } from "@/shared/hooks/use-toast";
-import {
-  useAuthActions,
-  useCurrentUser,
-} from "@/modules/auth";
+import { useAuthActions, useCurrentUser } from "@/modules/auth";
 
 export function ProfileSection() {
   const { user, isLoading } = useCurrentUser();
@@ -17,10 +14,13 @@ export function ProfileSection() {
 
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    if (user?.name) setName(user.name);
-  }, [user?.name]);
+    if (hydrated || !user?.name) return;
+    setName(user.name);
+    setHydrated(true);
+  }, [hydrated, user?.name]);
 
   if (isLoading || !user) {
     return (
@@ -59,7 +59,11 @@ export function ProfileSection() {
     <div className="space-y-4">
       <Card variant="default" padding="lg">
         <div className="flex items-start gap-5">
-          <Avatar src={undefined} name={user.name ?? user.email ?? "U"} size="lg" />
+          <Avatar
+            src={undefined}
+            name={user.name ?? user.email ?? "U"}
+            size="lg"
+          />
           <div className="flex-1 min-w-0">
             <h3 className="text-white text-sm font-medium">
               {user.name ?? "Unnamed"}

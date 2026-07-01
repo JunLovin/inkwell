@@ -1,5 +1,5 @@
 import { ReactLenis } from "lenis/react";
-import Header from "@/shared/layout/Header";
+import { Header } from "@/shared/layout/Header";
 
 export default function RootLayout({
   children,

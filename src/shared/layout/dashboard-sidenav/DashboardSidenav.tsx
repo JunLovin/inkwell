@@ -1,27 +1,61 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Archive,
   FileText,
   Folder as FolderIcon,
   Grid,
   Star,
+  Trash2,
 } from "lucide-react";
 
 import { Sidenav, type SidenavNavItem } from "../sidenav/Sidenav";
 import { useNoteCounts } from "@/modules/notes";
 import { tagSwatchClasses, useAllTags } from "@/modules/tags";
 import { folderIconClasses, useAllFolders } from "@/modules/folders";
-import {
-  useAuthActions,
-  useCurrentUser,
-} from "@/modules/auth";
+import { useAuthActions, useCurrentUser } from "@/modules/auth";
+
+function deriveActiveId(
+  pathname: string | null,
+  tagParam: string | null,
+  folderParam: string | null,
+): string | undefined {
+  if (tagParam) return `tag:${tagParam}`;
+  if (folderParam) return `folder:${folderParam}`;
+  if (!pathname) return undefined;
+  if (pathname === "/dashboard") return "dashboard";
+  if (pathname.startsWith("/dashboard/notes")) return "notes";
+  if (pathname.startsWith("/dashboard/favorite")) return "favorite";
+  if (pathname.startsWith("/dashboard/archived")) return "archived";
+  if (pathname.startsWith("/dashboard/trash")) return "trash";
+  return undefined;
+}
+
+function useUrlParam(key: string): string | null {
+  const [value, setValue] = useState<string | null>(null);
+
+  useEffect(() => {
+    const read = () => {
+      if (typeof window === "undefined") return;
+      const params = new URLSearchParams(window.location.search);
+      setValue(params.get(key));
+    };
+    read();
+    window.addEventListener("popstate", read);
+    return () => window.removeEventListener("popstate", read);
+  }, [key]);
+
+  return value;
+}
 
 export function DashboardSidenav() {
   const { signOut } = useAuthActions();
   const router = useRouter();
+  const pathname = usePathname();
+  const tagParam = useUrlParam("tag");
+  const folderParam = useUrlParam("folder");
 
   const { user, isLoading: userLoading } = useCurrentUser();
   const counts = useNoteCounts();
@@ -29,6 +63,8 @@ export function DashboardSidenav() {
   const { folders } = useAllFolders();
 
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const activeId = deriveActiveId(pathname, tagParam, folderParam);
 
   if (userLoading || !user) {
     return (
@@ -64,14 +100,16 @@ export function DashboardSidenav() {
       icon: <Archive size={14} />,
       badge: counts.archived,
     },
+    {
+      id: "trash",
+      label: "Trash",
+      icon: <Trash2 size={14} />,
+    },
     ...(folders ?? []).map<SidenavNavItem>((folder) => ({
       id: `folder:${folder._id}`,
       label: folder.name,
       icon: (
-        <FolderIcon
-          size={13}
-          className={folderIconClasses(folder.color)}
-        />
+        <FolderIcon size={13} className={folderIconClasses(folder.color)} />
       ),
       section: "Folders",
     })),
@@ -90,7 +128,8 @@ export function DashboardSidenav() {
   return (
     <Sidenav
       items={sidenavItems}
-      user={{ name: user.name || "Unknown", email: user.email! }}
+      activeId={activeId}
+      user={{ name: user.name || "Unknown", email: user.email ?? "" }}
       open={mobileOpen}
       onOpenChange={setMobileOpen}
       onNavigate={(id) => {

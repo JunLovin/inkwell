@@ -1,5 +1,5 @@
 import { AuthGuard } from "@/modules/auth";
-import { AIChatButton } from "@/modules/ai-chat";
+import { AIChatButton, AIChatPanel } from "@/modules/ai-chat";
 import { DashboardSidenav } from "@/shared/layout/dashboard-sidenav";
 import { ErrorBoundary } from "@/shared/providers/error-boundary";
 import { ContentWrapper } from "./content-wrapper";
@@ -11,15 +11,14 @@ export default function DashboardLayout({
 }) {
   return (
     <AuthGuard>
-      <main className="flex h-screen min-h-0 w-full font-host">
-        <aside>
-          <DashboardSidenav />
-        </aside>
+      <div className="flex h-screen min-h-0 w-full font-host">
+        <DashboardSidenav />
         <ContentWrapper>
           <ErrorBoundary>{children}</ErrorBoundary>
         </ContentWrapper>
-      </main>
+      </div>
       <AIChatButton />
+      <AIChatPanel />
     </AuthGuard>
   );
 }

@@ -15,6 +15,12 @@ const sizeStyles: Record<AvatarSize, string> = {
   lg: "w-11 h-11 text-base",
 };
 
+const imagePixels: Record<AvatarSize, number> = {
+  sm: 28,
+  md: 36,
+  lg: 44,
+};
+
 const indicatorSizes: Record<AvatarSize, string> = {
   sm: "w-2 h-2 border",
   md: "w-2.5 h-2.5 border-2",
@@ -31,6 +37,7 @@ function getInitials(name: string) {
 }
 
 export function Avatar({ src, name, size = "md", online }: AvatarProps) {
+  const pixels = imagePixels[size];
   return (
     <div className="relative inline-flex shrink-0">
       <div
@@ -45,6 +52,8 @@ export function Avatar({ src, name, size = "md", online }: AvatarProps) {
           <Image
             src={src}
             alt={name ?? "avatar"}
+            width={pixels}
+            height={pixels}
             className="w-full h-full object-cover"
           />
         ) : name ? (

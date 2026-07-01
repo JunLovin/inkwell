@@ -3,9 +3,12 @@
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type {
+  BulkResult,
   NoteMutations,
   NoteRepositoryPort,
 } from "../../domain/repositories/note.repository";
+
+const emptyBulkResult: BulkResult = { processed: 0, skipped: 0 };
 
 export const convexNoteRepository: NoteRepositoryPort = {
   useList: () => {
@@ -20,6 +23,11 @@ export const convexNoteRepository: NoteRepositoryPort = {
 
   useArchivedList: () => {
     const notes = useQuery(api.notes.getArchivedNotes, {});
+    return { notes: notes ?? undefined, isLoading: notes === undefined };
+  },
+
+  useDeletedList: () => {
+    const notes = useQuery(api.notes.getDeletedNotes, {});
     return { notes: notes ?? undefined, isLoading: notes === undefined };
   },
 
@@ -50,8 +58,10 @@ export const convexNoteRepository: NoteRepositoryPort = {
     const pinMutation = useMutation(api.notes.pinNote);
     const unpinMutation = useMutation(api.notes.unpinNote);
     const deleteMutation = useMutation(api.notes.deleteNote);
+    const hardDeleteMutation = useMutation(api.notes.hardDeleteNote);
     const bulkArchiveMutation = useMutation(api.notes.bulkArchiveNotes);
     const bulkDeleteMutation = useMutation(api.notes.bulkDeleteNotes);
+    const bulkHardDeleteMutation = useMutation(api.notes.bulkHardDeleteNotes);
 
     return {
       create: async (input) => {
@@ -81,11 +91,20 @@ export const convexNoteRepository: NoteRepositoryPort = {
       remove: async (id) => {
         await deleteMutation({ id });
       },
+      hardRemove: async (id) => {
+        await hardDeleteMutation({ id });
+      },
       bulkArchive: async (ids) => {
-        await bulkArchiveMutation({ ids });
+        const result = await bulkArchiveMutation({ ids });
+        return result ?? emptyBulkResult;
       },
       bulkDelete: async (ids) => {
-        await bulkDeleteMutation({ ids });
+        const result = await bulkDeleteMutation({ ids });
+        return result ?? emptyBulkResult;
+      },
+      bulkHardDelete: async (ids) => {
+        const result = await bulkHardDeleteMutation({ ids });
+        return result ?? emptyBulkResult;
       },
     };
   },

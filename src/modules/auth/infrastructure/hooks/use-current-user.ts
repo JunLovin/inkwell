@@ -1,8 +1,5 @@
 "use client";
 
-import { createAuthService } from "../../application/auth.service";
-import { convexAuthRepository } from "../repositories/convex-auth.repository";
-
-const authService = createAuthService(convexAuthRepository);
+import { authService } from "../auth-service";
 
 export const useCurrentUser = authService.useCurrentUser;
