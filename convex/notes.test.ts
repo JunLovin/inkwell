@@ -251,7 +251,7 @@ describe("notes cross-user authorization", () => {
     const [note] = await a.query(api.notes.getNotes, {});
     await b.mutation(api.notes.bulkArchiveNotes, { ids: [note._id] });
     const after = await a.query(api.notes.getNotes, {});
-    expect(after[0].isArchived).toBeFalsy();
+    expect(after[0].isArchived).toBe(false);
   });
 
   test("bulkDelete silently skips notes owned by another user", async () => {
@@ -267,7 +267,7 @@ describe("notes cross-user authorization", () => {
     const [note] = await a.query(api.notes.getNotes, {});
     await b.mutation(api.notes.bulkDeleteNotes, { ids: [note._id] });
     const after = await a.query(api.notes.getNotes, {});
-    expect(after[0].isDeleted).toBeFalsy();
+    expect(after[0].isDeleted).toBe(false);
   });
 });
 
@@ -281,5 +281,44 @@ describe("searchNotes", () => {
     expect(
       await asUser.query(api.notes.searchNotes, { search: "   " }),
     ).toEqual([]);
+  });
+
+  test("matches notes by title", async () => {
+    const t = convexTest(schema, modules);
+    const { asUser } = await seedUser(t);
+    await asUser.mutation(api.notes.addNote, {
+      title: "Refactor plan",
+      slug: "refactor-plan",
+      content: "{}",
+      preview: "",
+    });
+    await asUser.mutation(api.notes.addNote, {
+      title: "Grocery list",
+      slug: "grocery-list",
+      content: "{}",
+      preview: "",
+    });
+    const results = await asUser.query(api.notes.searchNotes, {
+      search: "refactor",
+    });
+    expect(results).toHaveLength(1);
+    expect(results[0].slug).toBe("refactor-plan");
+  });
+
+  test("excludes deleted notes from search results", async () => {
+    const t = convexTest(schema, modules);
+    const { asUser } = await seedUser(t);
+    await asUser.mutation(api.notes.addNote, {
+      title: "Refactor plan",
+      slug: "refactor-plan",
+      content: "{}",
+      preview: "",
+    });
+    const [note] = await asUser.query(api.notes.getNotes, {});
+    await asUser.mutation(api.notes.deleteNote, { id: note._id });
+    const results = await asUser.query(api.notes.searchNotes, {
+      search: "refactor",
+    });
+    expect(results).toEqual([]);
   });
 });

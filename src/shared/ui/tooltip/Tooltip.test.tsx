@@ -18,9 +18,10 @@ describe("Tooltip", () => {
         <button>trigger</button>
       </Tooltip>,
     );
-    fireEvent.mouseEnter(screen.getByText("trigger").parentElement!);
+    const trigger = screen.getByTestId("tooltip-trigger");
+    fireEvent.mouseEnter(trigger);
     expect(screen.getByRole("tooltip")).toHaveTextContent("Helpful");
-    fireEvent.mouseLeave(screen.getByText("trigger").parentElement!);
+    fireEvent.mouseLeave(trigger);
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   });
 
@@ -30,9 +31,10 @@ describe("Tooltip", () => {
         <button>trigger</button>
       </Tooltip>,
     );
-    fireEvent.focus(screen.getByText("trigger").parentElement!);
+    const trigger = screen.getByTestId("tooltip-trigger");
+    fireEvent.focus(trigger);
     expect(screen.getByRole("tooltip")).toBeInTheDocument();
-    fireEvent.blur(screen.getByText("trigger").parentElement!);
+    fireEvent.blur(trigger);
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   });
 
@@ -44,7 +46,7 @@ describe("Tooltip", () => {
           <button>t</button>
         </Tooltip>,
       );
-      fireEvent.mouseEnter(screen.getByText("t").parentElement!);
+      fireEvent.mouseEnter(screen.getByTestId("tooltip-trigger"));
       expect(screen.getByRole("tooltip")).toBeInTheDocument();
     },
   );

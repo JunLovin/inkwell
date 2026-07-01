@@ -3,28 +3,33 @@ import { render, screen } from "@testing-library/react";
 import { Loader } from "./Loader";
 
 describe("Loader", () => {
-  it("renders bar variant by default", () => {
-    const { container } = render(<Loader />);
-    expect(container.firstChild).toBeTruthy();
+  it("uses role=status with a default Loading label (bar)", () => {
+    render(<Loader />);
+    const status = screen.getByRole("status");
+    expect(status).toHaveAttribute("aria-label", "Loading");
   });
 
-  it("renders circle variant", () => {
-    const { container } = render(<Loader variant="circle" />);
-    expect(container.firstChild).toBeTruthy();
+  it("uses role=status with a default Loading label (circle)", () => {
+    render(<Loader variant="circle" />);
+    expect(screen.getByRole("status")).toHaveAttribute("aria-label", "Loading");
   });
 
-  it("renders the label when provided (bar)", () => {
-    render(<Loader label="Loading" />);
-    expect(screen.getByText("Loading")).toBeInTheDocument();
+  it("uses the provided label as aria-label and renders it as text (bar)", () => {
+    render(<Loader label="Saving notes" />);
+    const status = screen.getByRole("status");
+    expect(status).toHaveAttribute("aria-label", "Saving notes");
+    expect(screen.getByText("Saving notes")).toBeInTheDocument();
   });
 
-  it("renders the label when provided (circle)", () => {
+  it("uses the provided label as aria-label and renders it as text (circle)", () => {
     render(<Loader variant="circle" label="Wait" />);
+    const status = screen.getByRole("status");
+    expect(status).toHaveAttribute("aria-label", "Wait");
     expect(screen.getByText("Wait")).toBeInTheDocument();
   });
 
   it.each(["sm", "md", "lg"] as const)("renders size %s", (size) => {
-    const { container } = render(<Loader size={size} />);
-    expect(container.firstChild).toBeTruthy();
+    render(<Loader size={size} />);
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 });

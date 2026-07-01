@@ -6,17 +6,17 @@ import type {
   NoteRepositoryPort,
 } from "../domain/repositories/note.repository";
 import type { Note, NoteId } from "../domain/entities/note";
+import { makeNote as baseMakeNote } from "../__test-utils__/factories";
 
-function makeNote(id: string, overrides: Partial<Note> = {}): Note {
-  return {
+const makeNote = (id: string, overrides: Partial<Note> = {}): Note =>
+  baseMakeNote({
     _id: id as NoteId,
     _creationTime: 1,
     authorId: "u" as Note["authorId"],
     slug: id,
     title: `Note ${id}`,
     ...overrides,
-  } as Note;
-}
+  });
 
 function makeRepo(
   notes: Note[] = [],

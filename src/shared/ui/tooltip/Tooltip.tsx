@@ -53,6 +53,7 @@ export function Tooltip({ content, children, side = "top" }: TooltipProps) {
     <>
       <span
         ref={wrapperRef}
+        data-testid="tooltip-trigger"
         onMouseEnter={show}
         onMouseLeave={hide}
         onFocus={show}

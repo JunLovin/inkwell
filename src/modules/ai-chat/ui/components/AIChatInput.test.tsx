@@ -1,38 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
-vi.mock("gsap", () => {
-  const chain = () => ({
-    to: () => chain(),
-    fromTo: () => chain(),
-    set: () => chain(),
-  });
-  return {
-    default: {
-      to: () => chain(),
-      fromTo: () => chain(),
-      set: () => chain(),
-      timeline: () => chain(),
-    },
-  };
-});
+vi.mock("gsap", () => import("@/shared/__test-utils__/mock-gsap"));
 
-import { useAIChatStore } from "../../infrastructure/stores/ai-chat.store";
+import {
+  resetAIChatStore,
+  useAIChatStore,
+} from "../../infrastructure/stores/ai-chat.store";
 import { AIChatInput } from "./AIChatInput";
 
-const reset = () =>
-  useAIChatStore.setState({
-    isOpen: false,
-    currentContext: "dashboard",
-    contextMessages: {},
-    attachedNote: null,
-    attachedFiles: [],
-    isLoading: false,
-  });
-
 describe("AIChatInput", () => {
-  beforeEach(reset);
-  afterEach(reset);
+  beforeEach(resetAIChatStore);
+  afterEach(resetAIChatStore);
 
   it("submits trimmed text on Enter", () => {
     const onSubmit = vi.fn();
@@ -74,7 +53,7 @@ describe("AIChatInput", () => {
   it("opens and closes the attachment menu", () => {
     render(<AIChatInput onSubmit={() => {}} />);
     expect(screen.queryByText("Upload Image")).not.toBeInTheDocument();
-    fireEvent.click(screen.getAllByRole("button")[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Attach" }));
     expect(screen.getByText("Upload Image")).toBeInTheDocument();
     expect(screen.getByText("Upload File")).toBeInTheDocument();
   });

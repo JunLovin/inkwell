@@ -1,12 +1,7 @@
 import type { ReactNode } from "react";
 
 type BadgeVariant =
-  | "default"
-  | "active"
-  | "success"
-  | "warning"
-  | "danger"
-  | "info";
+  "default" | "active" | "success" | "warning" | "danger" | "info";
 
 type BadgeProps = {
   children: ReactNode;
@@ -47,6 +42,7 @@ export function Badge({
     >
       {dot && (
         <span
+          data-testid="badge-dot"
           className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotStyles[variant]}`}
         />
       )}

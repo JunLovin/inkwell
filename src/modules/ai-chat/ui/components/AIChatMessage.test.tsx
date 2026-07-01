@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import type { ChatMessage } from "../../domain/entities/chat-message";
 import { AIChatMessage } from "./AIChatMessage";
 
@@ -21,7 +21,7 @@ describe("AIChatMessage", () => {
     expect(screen.getByText("hello back")).toBeInTheDocument();
   });
 
-  it("shows Regenerate button only for the last assistant message with handler", () => {
+  it("shows Regenerate button for the last assistant message and calls onRegenerate", () => {
     const onRegenerate = vi.fn();
     render(
       <AIChatMessage
@@ -30,10 +30,28 @@ describe("AIChatMessage", () => {
         onRegenerate={onRegenerate}
       />,
     );
-    expect(screen.getAllByRole("button").length).toBeGreaterThanOrEqual(2);
+    const button = screen.getByRole("button", { name: "Regenerate response" });
+    fireEvent.click(button);
+    expect(onRegenerate).toHaveBeenCalledOnce();
   });
 
-  it("does not show Regenerate for user messages", () => {
+  it("hides Regenerate when isLast is false", () => {
+    render(
+      <AIChatMessage message={assistantMessage} onRegenerate={() => {}} />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Regenerate response" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders a Copy button on assistant messages", () => {
+    render(<AIChatMessage message={assistantMessage} />);
+    expect(
+      screen.getByRole("button", { name: "Copy message" }),
+    ).toBeInTheDocument();
+  });
+
+  it("does not render any action buttons for user messages", () => {
     render(
       <AIChatMessage message={userMessage} isLast onRegenerate={() => {}} />,
     );

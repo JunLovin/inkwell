@@ -26,4 +26,24 @@ describe("generateSlug", () => {
   it("preserves digits", () => {
     expect(generateSlug("note 42")).toBe("note-42");
   });
+
+  it("strips accented characters (no transliteration)", () => {
+    expect(generateSlug("Café écolier")).toBe("caf-colier");
+  });
+
+  it("strips non-ascii letters entirely", () => {
+    expect(generateSlug("日本語 note")).toBe("-note");
+  });
+
+  it("strips surrounding punctuation entirely", () => {
+    expect(generateSlug("!hello!")).toBe("hello");
+  });
+
+  it("may produce a leading dash when punctuation is followed by whitespace", () => {
+    expect(generateSlug(". hello")).toBe("-hello");
+  });
+
+  it("returns an empty string for whitespace-only input", () => {
+    expect(generateSlug("   ")).toBe("");
+  });
 });

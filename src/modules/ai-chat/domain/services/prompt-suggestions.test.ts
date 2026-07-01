@@ -7,14 +7,26 @@ import {
 } from "./prompt-suggestions";
 
 describe("prompt suggestions", () => {
-  it("exposes non-empty dashboard suggestions", () => {
-    expect(dashboardSuggestions.length).toBeGreaterThan(0);
-    dashboardSuggestions.forEach((s) => expect(typeof s).toBe("string"));
+  it("exposes the exact dashboard suggestion list", () => {
+    expect(dashboardSuggestions).toEqual([
+      "Summarize my recent notes",
+      "What did I write about last week?",
+      "Help me organize my ideas",
+    ]);
   });
 
-  it("exposes non-empty note suggestions", () => {
-    expect(noteSuggestions.length).toBeGreaterThan(0);
-    noteSuggestions.forEach((s) => expect(typeof s).toBe("string"));
+  it("exposes the exact note suggestion list", () => {
+    expect(noteSuggestions).toEqual([
+      "Summarize this note",
+      "Suggest improvements",
+      "Extract action items",
+    ]);
+  });
+
+  it("exposes suggestions as immutable arrays", () => {
+    expect(Object.isFrozen(dashboardSuggestions)).toBe(false);
+    expect(dashboardSuggestions.length).toBe(3);
+    expect(noteSuggestions.length).toBe(3);
   });
 
   describe("getSuggestions", () => {

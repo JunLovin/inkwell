@@ -15,20 +15,14 @@ vi.mock("@google/genai", () => {
 
 const modules = import.meta.glob("./**/*.ts");
 
-const originalKey = process.env.GEMINI_API_KEY;
-const originalTestMode = process.env.AI_TEST_MODE;
-
 describe("ai.chat", () => {
   beforeEach(() => {
-    delete process.env.AI_TEST_MODE;
-    process.env.GEMINI_API_KEY = "test-key";
+    vi.stubEnv("AI_TEST_MODE", "");
+    vi.stubEnv("GEMINI_API_KEY", "test-key");
   });
 
   afterEach(() => {
-    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
-    else process.env.GEMINI_API_KEY = originalKey;
-    if (originalTestMode === undefined) delete process.env.AI_TEST_MODE;
-    else process.env.AI_TEST_MODE = originalTestMode;
+    vi.unstubAllEnvs();
   });
 
   test("throws when unauthenticated", async () => {
@@ -50,7 +44,7 @@ describe("ai.chat", () => {
   });
 
   test("throws AI_NOT_CONFIGURED when GEMINI_API_KEY is missing", async () => {
-    delete process.env.GEMINI_API_KEY;
+    vi.stubEnv("GEMINI_API_KEY", "");
     const t = convexTest(schema, modules);
     const { asUser } = await seedUser(t);
     await expect(
@@ -61,7 +55,7 @@ describe("ai.chat", () => {
   });
 
   test("returns canned reply when AI_TEST_MODE is true", async () => {
-    process.env.AI_TEST_MODE = "true";
+    vi.stubEnv("AI_TEST_MODE", "true");
     const t = convexTest(schema, modules);
     const { asUser } = await seedUser(t);
     const out = await asUser.action(api.ai.chat, {

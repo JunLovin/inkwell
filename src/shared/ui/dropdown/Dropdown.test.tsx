@@ -1,21 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
-vi.mock("gsap", () => {
-  const chain = () => ({
-    to: () => chain(),
-    fromTo: () => chain(),
-    set: () => chain(),
-  });
-  return {
-    default: {
-      to: () => chain(),
-      fromTo: () => chain(),
-      set: () => chain(),
-      timeline: () => chain(),
-    },
-  };
-});
+vi.mock("gsap", () => import("@/shared/__test-utils__/mock-gsap"));
 
 import { Dropdown, DropdownTrigger } from "./Dropdown";
 

@@ -1,11 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { useToastStore } from "./toast.store";
-
-const reset = () => useToastStore.setState({ toasts: [] });
+import { resetToastStore, useToastStore } from "./toast.store";
 
 describe("useToastStore", () => {
-  beforeEach(reset);
-  afterEach(reset);
+  beforeEach(resetToastStore);
+  afterEach(resetToastStore);
 
   it("starts empty", () => {
     expect(useToastStore.getState().toasts).toEqual([]);

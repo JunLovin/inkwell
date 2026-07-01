@@ -137,16 +137,20 @@ export function AIChatMarkdown({ content }: Props) {
             2: "text-sm font-bold text-white",
             3: "text-sm font-semibold text-zinc-100",
           };
+          const HeadingTag = `h${token.level}` as "h1" | "h2" | "h3";
           return (
-            <p key={idx} className={sizeMap[token.level]}>
+            <HeadingTag key={idx} className={sizeMap[token.level]}>
               {parseInline(token.text)}
-            </p>
+            </HeadingTag>
           );
         }
 
         if (token.type === "ul") {
           return (
-            <ul key={idx} className="list-disc list-inside flex flex-col gap-0.5 pl-1">
+            <ul
+              key={idx}
+              className="list-disc list-inside flex flex-col gap-0.5 pl-1"
+            >
               {token.items.map((item, j) => (
                 <li key={j} className="text-zinc-300">
                   {parseInline(item)}
@@ -158,7 +162,10 @@ export function AIChatMarkdown({ content }: Props) {
 
         if (token.type === "ol") {
           return (
-            <ol key={idx} className="list-decimal list-inside flex flex-col gap-0.5 pl-1">
+            <ol
+              key={idx}
+              className="list-decimal list-inside flex flex-col gap-0.5 pl-1"
+            >
               {token.items.map((item, j) => (
                 <li key={j} className="text-zinc-300">
                   {parseInline(item)}

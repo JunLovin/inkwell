@@ -56,6 +56,7 @@ export function Avatar({ src, name, size = "md", online }: AvatarProps) {
 
       {online !== undefined && (
         <span
+          data-online={online ? "true" : "false"}
           className={`
             absolute bottom-0 right-0 rounded-full border-zinc-900
             ${online ? "bg-emerald-400" : "bg-zinc-600"}

@@ -1,31 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
-vi.mock("gsap", () => {
-  const chain = () => ({
-    to: () => chain(),
-    fromTo: () => chain(),
-    set: () => chain(),
-    kill: () => chain(),
-  });
-  return {
-    default: {
-      to: () => chain(),
-      fromTo: () => chain(),
-      set: () => chain(),
-      timeline: () => chain(),
-    },
-  };
-});
+vi.mock("gsap", () => import("@/shared/__test-utils__/mock-gsap"));
 
 import { Toast } from "./Toast";
-import { useToastStore } from "@/shared/stores/toast.store";
-
-const reset = () => useToastStore.setState({ toasts: [] });
+import { resetToastStore, useToastStore } from "@/shared/stores/toast.store";
 
 describe("Toast", () => {
-  beforeEach(reset);
-  afterEach(reset);
+  beforeEach(resetToastStore);
+  afterEach(resetToastStore);
 
   it("renders nothing when no toasts are present", () => {
     render(<Toast />);
@@ -68,11 +51,13 @@ describe("Toast", () => {
     expect(screen.getByText("d")).toBeInTheDocument();
   });
 
-  it("dismiss button triggers gsap removal", () => {
+  it("dismiss button is exposed with an accessible label", () => {
     useToastStore.setState({
       toasts: [{ id: "4", title: "t", variant: "info", duration: 100000 }],
     });
     render(<Toast />);
-    fireEvent.click(screen.getByLabelText("Dismiss notification"));
+    const dismiss = screen.getByLabelText("Dismiss notification");
+    expect(dismiss).toBeInTheDocument();
+    expect(() => fireEvent.click(dismiss)).not.toThrow();
   });
 });

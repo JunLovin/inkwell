@@ -25,13 +25,27 @@ type AIChatStore = {
   removeLastAssistantMessage: () => void;
 };
 
-export const useAIChatStore = create<AIChatStore>((set) => ({
+type AIChatStateSnapshot = Pick<
+  AIChatStore,
+  | "isOpen"
+  | "currentContext"
+  | "contextMessages"
+  | "attachedNote"
+  | "attachedFiles"
+  | "isLoading"
+>;
+
+export const INITIAL_AI_CHAT_STATE: AIChatStateSnapshot = {
   isOpen: false,
   currentContext: "dashboard",
   contextMessages: {},
   attachedNote: null,
   attachedFiles: [],
   isLoading: false,
+};
+
+export const useAIChatStore = create<AIChatStore>((set) => ({
+  ...INITIAL_AI_CHAT_STATE,
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false, attachedFiles: [] }),
   toggle: () =>
@@ -87,3 +101,13 @@ export const useAIChatStore = create<AIChatStore>((set) => ({
       };
     }),
 }));
+
+export const resetAIChatStore = () =>
+  useAIChatStore.setState({
+    isOpen: INITIAL_AI_CHAT_STATE.isOpen,
+    currentContext: INITIAL_AI_CHAT_STATE.currentContext,
+    contextMessages: { ...INITIAL_AI_CHAT_STATE.contextMessages },
+    attachedNote: INITIAL_AI_CHAT_STATE.attachedNote,
+    attachedFiles: [...INITIAL_AI_CHAT_STATE.attachedFiles],
+    isLoading: INITIAL_AI_CHAT_STATE.isLoading,
+  });

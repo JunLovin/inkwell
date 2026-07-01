@@ -14,6 +14,7 @@ import { Tooltip } from "@/shared/ui/tooltip";
 import { TagChip, type Tag } from "@/modules/tags";
 import { folderBadgeClasses, type Folder } from "@/modules/folders";
 import type { Note } from "../../../domain/entities/note";
+import { timeAgo } from "../../../domain/services/time-ago";
 
 const defaultCovers = [
   "from-zinc-800 to-zinc-900",
@@ -21,14 +22,6 @@ const defaultCovers = [
   "from-slate-800 to-slate-900",
   "from-neutral-800 to-neutral-900",
 ];
-
-function timeAgo(date: Date) {
-  const diff = (Date.now() - date.getTime()) / 1000;
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
-}
 
 type NoteCardProps = {
   note: Partial<Note>;
@@ -61,8 +54,7 @@ export function NoteCard({
   const isFavorite = note.isFavorite ?? false;
   const isPinned = note.isPinned ?? false;
   const hasActions =
-    !selectable &&
-    (onFavorite || onArchive || onDelete || onRestore || onPin);
+    !selectable && (onFavorite || onArchive || onDelete || onRestore || onPin);
 
   return (
     <button
@@ -75,7 +67,9 @@ export function NoteCard({
           : "border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/30"
       }`}
     >
-      <div className={`h-28 bg-gradient-to-br ${cover} relative overflow-hidden`}>
+      <div
+        className={`h-28 bg-gradient-to-br ${cover} relative overflow-hidden`}
+      >
         {selectable && (
           <div
             className={`absolute top-3 left-3 w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${

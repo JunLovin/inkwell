@@ -1,77 +1,28 @@
 import { describe, expect, it } from "vitest";
+import { asJson, heading, list, paragraph } from "./__test-utils__/fixtures";
 import { jsonToMarkdown } from "./json-to-markdown";
-
-const makeParagraph = (text: string) => ({
-  root: {
-    type: "root",
-    version: 1,
-    direction: null,
-    format: "",
-    indent: 0,
-    children: [
-      {
-        type: "paragraph",
-        version: 1,
-        direction: null,
-        format: "",
-        indent: 0,
-        children: [
-          {
-            type: "text",
-            version: 1,
-            detail: 0,
-            format: 0,
-            mode: "normal",
-            style: "",
-            text,
-          },
-        ],
-      },
-    ],
-  },
-});
-
-const makeHeading = (text: string) => ({
-  root: {
-    type: "root",
-    version: 1,
-    direction: null,
-    format: "",
-    indent: 0,
-    children: [
-      {
-        type: "heading",
-        tag: "h1",
-        version: 1,
-        direction: null,
-        format: "",
-        indent: 0,
-        children: [
-          {
-            type: "text",
-            version: 1,
-            detail: 0,
-            format: 0,
-            mode: "normal",
-            style: "",
-            text,
-          },
-        ],
-      },
-    ],
-  },
-});
 
 describe("jsonToMarkdown", () => {
   it("converts a paragraph to plain markdown", () => {
-    const json = JSON.stringify(makeParagraph("Hello world"));
-    expect(jsonToMarkdown(json)).toContain("Hello world");
+    expect(jsonToMarkdown(asJson(paragraph("Hello world")))).toContain(
+      "Hello world",
+    );
   });
 
-  it("converts a heading to a markdown heading", () => {
-    const json = JSON.stringify(makeHeading("Title"));
-    const md = jsonToMarkdown(json);
-    expect(md).toMatch(/^# Title/m);
+  it("converts an H1 heading to a markdown heading", () => {
+    expect(jsonToMarkdown(asJson(heading(1, "Title")))).toMatch(/^# Title/m);
+  });
+
+  it("converts an unordered list to bullet markdown", () => {
+    const md = jsonToMarkdown(asJson(list(["one", "two"])));
+    expect(md).toMatch(/^- one/m);
+    expect(md).toMatch(/^- two/m);
+  });
+
+  it("converts an ordered list to numbered markdown", () => {
+    const md = jsonToMarkdown(asJson(list(["one", "two"], true)));
+    expect(md).toMatch(/^1\. one/m);
+    expect(md).toMatch(/^2\. two/m);
   });
 
   it("throws on malformed JSON", () => {

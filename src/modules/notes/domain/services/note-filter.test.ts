@@ -1,20 +1,20 @@
 import { describe, expect, it } from "vitest";
 
-import type { Note } from "../entities/note";
+import type { Note, NoteId } from "../entities/note";
+import { makeNote as baseMakeNote } from "../../__test-utils__/factories";
 import { countByStatus, filterAndSort } from "./note-filter";
 
 type NoteOverrides = Partial<Omit<Note, "_id">> & { _id?: string };
 
-function makeNote(overrides: NoteOverrides = {}): Note {
-  return {
-    _id: "n1",
+const makeNote = (overrides: NoteOverrides = {}): Note =>
+  baseMakeNote({
+    _id: "n1" as NoteId,
     _creationTime: 1000,
-    authorId: "u1",
+    authorId: "u1" as Note["authorId"],
     slug: "untitled",
     title: "Untitled",
-    ...overrides,
-  } as unknown as Note;
-}
+    ...(overrides as Partial<Note>),
+  });
 
 describe("filterAndSort", () => {
   it("excludes deleted notes from every status filter", () => {
@@ -88,9 +88,9 @@ describe("filterAndSort", () => {
       makeNote({ _id: "b", updatedAt: 100 }),
     ];
 
-    expect(filterAndSort(notes, { sortOrder: "asc" }).map((n) => n._id)).toEqual(
-      ["b", "a"],
-    );
+    expect(
+      filterAndSort(notes, { sortOrder: "asc" }).map((n) => n._id),
+    ).toEqual(["b", "a"]);
   });
 
   it("pinned notes always sort first regardless of sortOrder", () => {
@@ -106,9 +106,9 @@ describe("filterAndSort", () => {
       "new-unpinned",
     ]);
 
-    expect(filterAndSort(notes, { sortOrder: "asc" }).map((n) => n._id)).toEqual(
-      ["old-pinned", "mid-pinned", "new-unpinned"],
-    );
+    expect(
+      filterAndSort(notes, { sortOrder: "asc" }).map((n) => n._id),
+    ).toEqual(["old-pinned", "mid-pinned", "new-unpinned"]);
   });
 });
 
