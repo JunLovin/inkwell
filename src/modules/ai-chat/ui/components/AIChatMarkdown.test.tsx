@@ -8,12 +8,17 @@ describe("AIChatMarkdown", () => {
     expect(screen.getByText("hello world")).toBeInTheDocument();
   });
 
-  it("renders heading levels", () => {
-    const { container } = render(
-      <AIChatMarkdown content={"# h1\n## h2\n### h3"} />,
-    );
-    const paragraphs = container.querySelectorAll("p");
-    expect(paragraphs.length).toBeGreaterThanOrEqual(3);
+  it("renders headings with semantic h1/h2/h3 tags", () => {
+    render(<AIChatMarkdown content={"# h1\n## h2\n### h3"} />);
+    expect(
+      screen.getByRole("heading", { level: 1, name: "h1" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "h2" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 3, name: "h3" }),
+    ).toBeInTheDocument();
   });
 
   it("renders an unordered list", () => {

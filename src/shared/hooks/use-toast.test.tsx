@@ -1,13 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useToastStore } from "@/shared/stores/toast.store";
+import { resetToastStore, useToastStore } from "@/shared/stores/toast.store";
 import { toast, useToast } from "./use-toast";
 
-const reset = () => useToastStore.setState({ toasts: [] });
-
 describe("toast (module-level helper)", () => {
-  beforeEach(reset);
-  afterEach(reset);
+  beforeEach(resetToastStore);
+  afterEach(resetToastStore);
 
   it("accepts a string and assigns the variant", () => {
     toast.success("Saved");
@@ -40,8 +38,8 @@ describe("toast (module-level helper)", () => {
 });
 
 describe("useToast", () => {
-  beforeEach(reset);
-  afterEach(reset);
+  beforeEach(resetToastStore);
+  afterEach(resetToastStore);
 
   it("exposes variant methods and remove", () => {
     const { result } = renderHook(() => useToast());

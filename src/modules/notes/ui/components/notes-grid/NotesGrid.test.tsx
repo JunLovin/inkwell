@@ -1,35 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
-vi.mock("gsap", () => {
-  const chain = () => ({
-    to: () => chain(),
-    fromTo: () => chain(),
-    set: () => chain(),
-  });
-  return {
-    default: {
-      to: () => chain(),
-      fromTo: () => chain(),
-      set: () => chain(),
-      timeline: () => chain(),
-    },
-  };
-});
+vi.mock("gsap", () => import("@/shared/__test-utils__/mock-gsap"));
 
-import type { Note } from "../../../domain/entities/note";
+import type { Note, NoteId } from "../../../domain/entities/note";
+import { makeNote as baseMakeNote } from "../../../__test-utils__/factories";
 import { NotesGrid } from "./NotesGrid";
 
-function makeNote(id: string, overrides: Partial<Note> = {}): Note {
-  return {
-    _id: id as Note["_id"],
+const makeNote = (id: string, overrides: Partial<Note> = {}): Note =>
+  baseMakeNote({
+    _id: id as NoteId,
     _creationTime: 1,
     authorId: "u" as Note["authorId"],
     slug: id,
     title: `Note ${id}`,
     ...overrides,
-  } as Note;
-}
+  });
 
 describe("NotesGrid", () => {
   it("renders empty state when notes are empty", () => {

@@ -1,19 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { Note } from "../../../domain/entities/note";
+import { makeNote as baseMakeNote } from "../../../__test-utils__/factories";
 import { NoteCard } from "./NoteCard";
 
-function makeNote(overrides: Partial<Note> = {}): Partial<Note> {
-  return {
-    _id: "note_1" as Note["_id"],
-    _creationTime: 1,
-    authorId: "user_1" as Note["authorId"],
-    slug: "s",
+const makeNote = (overrides: Partial<Note> = {}): Partial<Note> =>
+  baseMakeNote({
     title: "My note",
     preview: "preview text",
     ...overrides,
-  };
-}
+  });
 
 describe("NoteCard", () => {
   it("renders title and preview", () => {

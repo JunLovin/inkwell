@@ -94,4 +94,20 @@ describe("createChatService.useSendMessage", () => {
     });
     expect(out).toBe("response text");
   });
+
+  it("propagates errors thrown by the repository", async () => {
+    const send = vi.fn<(p: SendMessagePayload) => Promise<string>>(async () => {
+      throw new Error("upstream failure");
+    });
+    const svc = createChatService(makeRepo(send));
+    const { result } = renderHook(() => svc.useSendMessage());
+    await expect(
+      result.current({
+        history: [],
+        text: "hi",
+        attachedFiles: [],
+        attachedNote: null,
+      }),
+    ).rejects.toThrow("upstream failure");
+  });
 });

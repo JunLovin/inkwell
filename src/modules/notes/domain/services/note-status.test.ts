@@ -1,17 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { Note } from "../entities/note";
+import { makeNote } from "../../__test-utils__/factories";
 import { isActive, isArchived, isDeleted, isFavorite } from "./note-status";
-
-function makeNote(overrides: Partial<Note> = {}): Note {
-  return {
-    _id: "note_1" as Note["_id"],
-    _creationTime: 1,
-    authorId: "user_1" as Note["authorId"],
-    slug: "s",
-    title: "t",
-    ...overrides,
-  } as Note;
-}
 
 describe("note-status predicates", () => {
   it("isDeleted is true only when isDeleted === true", () => {

@@ -121,6 +121,7 @@ export function AIChatInput({ onSubmit }: Props) {
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
+            aria-label="Attach"
             className="w-7 h-7 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700/60 transition-colors"
           >
             <Plus className="w-4 h-4" />

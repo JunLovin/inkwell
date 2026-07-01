@@ -13,6 +13,8 @@ const sizeStyles: Record<SpinnerSize, string> = {
 export function Spinner({ size = "md" }: SpinnerProps) {
   return (
     <span
+      role="status"
+      aria-label="Loading"
       className={`
         inline-block rounded-full border-zinc-700 border-t-zinc-300
         animate-spin shrink-0

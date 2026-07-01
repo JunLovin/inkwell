@@ -1,33 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
-vi.mock("gsap", () => {
-  const chain = () => ({
-    to: () => chain(),
-    fromTo: () => chain(),
-    set: () => chain(),
-  });
-  return {
-    default: {
-      to: () => chain(),
-      fromTo: () => chain(),
-      set: () => chain(),
-      timeline: () => chain(),
-    },
-  };
-});
+vi.mock("gsap", () => import("@/shared/__test-utils__/mock-gsap"));
 
 import { Dialog } from "./Dialog";
 
 describe("Dialog", () => {
-  it("does not throw when closed", () => {
-    expect(() =>
-      render(
-        <Dialog open={false} onClose={() => {}} title="t">
-          body
-        </Dialog>,
-      ),
-    ).not.toThrow();
+  it("hides the dialog from the accessibility tree when closed", () => {
+    render(
+      <Dialog open={false} onClose={() => {}} title="t">
+        body
+      </Dialog>,
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByText("body")).not.toBeVisible();
   });
 
   it("renders title, description and content when open", () => {

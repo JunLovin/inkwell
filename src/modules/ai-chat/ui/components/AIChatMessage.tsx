@@ -46,6 +46,7 @@ export function AIChatMessage({ message, isLast, onRegenerate }: Props) {
           <button
             type="button"
             onClick={handleCopy}
+            aria-label="Copy message"
             className="w-6 h-6 flex items-center justify-center rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800 transition-colors cursor-pointer"
           >
             <Copy className="w-3 h-3" />
@@ -56,6 +57,7 @@ export function AIChatMessage({ message, isLast, onRegenerate }: Props) {
             <button
               type="button"
               onClick={onRegenerate}
+              aria-label="Regenerate response"
               className="w-6 h-6 flex items-center justify-center rounded-lg text-zinc-600 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3 h-3" />

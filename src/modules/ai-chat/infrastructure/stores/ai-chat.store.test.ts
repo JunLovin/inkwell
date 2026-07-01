@@ -1,20 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { useAIChatStore } from "./ai-chat.store";
-
-const initial = {
-  isOpen: false,
-  currentContext: "dashboard",
-  contextMessages: {},
-  attachedNote: null,
-  attachedFiles: [],
-  isLoading: false,
-};
-
-const reset = () => useAIChatStore.setState(initial);
+import { resetAIChatStore, useAIChatStore } from "./ai-chat.store";
 
 describe("useAIChatStore", () => {
-  beforeEach(reset);
-  afterEach(reset);
+  beforeEach(resetAIChatStore);
+  afterEach(resetAIChatStore);
 
   describe("panel visibility", () => {
     it("open() sets isOpen to true", () => {

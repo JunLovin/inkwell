@@ -12,8 +12,8 @@ import { Avatar } from "./Avatar";
 
 describe("Avatar", () => {
   it("renders initials from a name", () => {
-    render(<Avatar name="Mathias Rendon" />);
-    expect(screen.getByText("MR")).toBeInTheDocument();
+    render(<Avatar name="Alice Smith" />);
+    expect(screen.getByText("AS")).toBeInTheDocument();
   });
 
   it("uppercases initials and slices to first two words", () => {
@@ -36,13 +36,20 @@ describe("Avatar", () => {
     expect(screen.getByText("A")).toBeInTheDocument();
   });
 
-  it("renders an online indicator when online is true", () => {
+  it("marks the online indicator with data-online=true", () => {
     const { container } = render(<Avatar name="A" online />);
-    expect(container.querySelectorAll("span").length).toBeGreaterThan(0);
+    expect(container.querySelector('[data-online="true"]')).toBeInTheDocument();
   });
 
-  it("renders an offline indicator when online is false", () => {
+  it("marks the offline indicator with data-online=false", () => {
     const { container } = render(<Avatar name="A" online={false} />);
-    expect(container.querySelectorAll("span").length).toBeGreaterThan(0);
+    expect(
+      container.querySelector('[data-online="false"]'),
+    ).toBeInTheDocument();
+  });
+
+  it("omits the indicator entirely when online is undefined", () => {
+    const { container } = render(<Avatar name="A" />);
+    expect(container.querySelector("[data-online]")).not.toBeInTheDocument();
   });
 });

@@ -37,8 +37,17 @@ describe("useFocusTrap", () => {
     expect(document.activeElement).toBe(getByText("last"));
   });
 
-  it("does nothing when not active", () => {
-    const { container } = render(<Harness active={false} />);
-    expect(container).toBeTruthy();
+  it("does not move focus when not active", () => {
+    const initiallyFocused = document.body;
+    render(<Harness active={false} />);
+    expect(document.activeElement).toBe(initiallyFocused);
+  });
+
+  it("does not intercept Tab when not active", () => {
+    const { getByText } = render(<Harness active={false} />);
+    const last = getByText("last") as HTMLButtonElement;
+    last.focus();
+    fireEvent.keyDown(document, { key: "Tab" });
+    expect(document.activeElement).toBe(last);
   });
 });

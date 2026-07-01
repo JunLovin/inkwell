@@ -20,9 +20,14 @@ const barSize: Record<LoaderSize, string> = {
 };
 
 export function Loader({ variant = "bar", size = "md", label }: LoaderProps) {
+  const ariaLabel = label ?? "Loading";
   if (variant === "circle") {
     return (
-      <div className="flex flex-col items-center justify-center gap-3">
+      <div
+        role="status"
+        aria-label={ariaLabel}
+        className="flex flex-col items-center justify-center gap-3"
+      >
         <span
           className={`
             rounded-full border-zinc-800 border-t-zinc-400
@@ -37,7 +42,11 @@ export function Loader({ variant = "bar", size = "md", label }: LoaderProps) {
   }
 
   return (
-    <div className="flex flex-col gap-2 w-full">
+    <div
+      role="status"
+      aria-label={ariaLabel}
+      className="flex flex-col gap-2 w-full"
+    >
       <div
         className={`w-full bg-zinc-800 rounded-full overflow-hidden ${barSize[size]}`}
       >

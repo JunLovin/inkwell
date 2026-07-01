@@ -21,12 +21,12 @@ describe("Badge", () => {
   });
 
   it("does not render a dot by default", () => {
-    const { container } = render(<Badge>x</Badge>);
-    expect(container.querySelectorAll("span").length).toBe(1);
+    render(<Badge>x</Badge>);
+    expect(screen.queryByTestId("badge-dot")).not.toBeInTheDocument();
   });
 
   it("renders a dot when dot=true", () => {
-    const { container } = render(<Badge dot>x</Badge>);
-    expect(container.querySelectorAll("span").length).toBeGreaterThan(1);
+    render(<Badge dot>x</Badge>);
+    expect(screen.getByTestId("badge-dot")).toBeInTheDocument();
   });
 });

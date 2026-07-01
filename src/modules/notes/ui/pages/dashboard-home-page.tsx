@@ -21,13 +21,7 @@ import {
   useNoteCounts,
 } from "../../infrastructure/hooks/use-notes";
 import { filterAndSort } from "../../domain/services/note-filter";
-
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
-}
+import { getGreeting } from "../../domain/services/greeting";
 
 export function DashboardHomePage() {
   const { notes, isLoading } = useAllNotes();
@@ -149,8 +143,7 @@ export function DashboardHomePage() {
         <div>
           <p className="text-zinc-600 text-xs mb-2 tracking-wide">{today}</p>
           <h1 className="text-3xl font-semibold text-white tracking-tight">
-            {getGreeting()},{" "}
-            <span className="text-zinc-400">{firstName}.</span>
+            {getGreeting()}, <span className="text-zinc-400">{firstName}.</span>
           </h1>
           <p className="text-zinc-600 text-sm mt-2">
             {stats.total === 0

@@ -1,21 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
-vi.mock("gsap", () => {
-  const chain = () => ({
-    to: () => chain(),
-    fromTo: () => chain(),
-    set: () => chain(),
-  });
-  return {
-    default: {
-      to: () => chain(),
-      fromTo: () => chain(),
-      set: () => chain(),
-      timeline: () => chain(),
-    },
-  };
-});
+vi.mock("gsap", () => import("@/shared/__test-utils__/mock-gsap"));
 
 import { Select } from "./Select";
 
@@ -31,9 +17,9 @@ describe("Select", () => {
     expect(screen.getByText("Pick")).toBeInTheDocument();
   });
 
-  it("shows the selected label", () => {
+  it("shows the selected label on the trigger button", () => {
     render(<Select options={options} value="b" />);
-    expect(screen.getAllByText("Beta").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button")).toHaveTextContent("Beta");
   });
 
   it("opens the menu and fires onChange", () => {

@@ -8,14 +8,11 @@ import { Button, Card, Dialog, Input } from "@/shared/ui";
 import { useToast } from "@/shared/hooks/use-toast";
 import { useAllNotes } from "@/modules/notes";
 import { useAuthActions } from "@/modules/auth";
-
-function todayStamp() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
+import {
+  buildExportFilename,
+  buildExportPayload,
+  isDeleteConfirmed,
+} from "./services";
 
 export function DangerZoneSection() {
   const { notes, isLoading } = useAllNotes();
@@ -28,18 +25,14 @@ export function DangerZoneSection() {
   const [deleting, setDeleting] = useState(false);
 
   const handleExport = () => {
-    const payload = {
-      exportedAt: new Date().toISOString(),
-      noteCount: notes?.length ?? 0,
-      notes: notes ?? [],
-    };
+    const payload = buildExportPayload(notes);
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json",
     });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `inkwell-export-${todayStamp()}.json`;
+    link.download = buildExportFilename();
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -114,8 +107,8 @@ export function DangerZoneSection() {
               Delete account
             </h3>
             <p className="text-zinc-500 text-xs mt-1 max-w-md leading-relaxed">
-              Permanently delete your Inkwell account and every note tied to
-              it. This action cannot be undone.
+              Permanently delete your Inkwell account and every note tied to it.
+              This action cannot be undone.
             </p>
           </div>
           <Button
@@ -177,7 +170,7 @@ export function DangerZoneSection() {
               variant="danger"
               size="sm"
               loading={deleting}
-              disabled={confirmText !== "DELETE" || deleting}
+              disabled={!isDeleteConfirmed(confirmText) || deleting}
               onClick={handleDelete}
             >
               Permanently delete
