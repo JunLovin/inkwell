@@ -39,13 +39,20 @@ export function Drawer({
 }: DrawerProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const openRef = useRef(open);
   const mounted = usePortalMounted();
   useFocusTrap(panelRef, open);
+
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
 
   useEffect(() => {
     const overlay = overlayRef.current;
     const panel = panelRef.current;
     if (!overlay || !panel) return;
+
+    gsap.killTweensOf([overlay, panel]);
 
     if (open) {
       gsap.set(overlay, { display: "flex" });
@@ -67,7 +74,7 @@ export function Drawer({
         duration: 0.3,
         ease: "power3.in",
         onComplete: () => {
-          gsap.set(overlay, { display: "none" });
+          if (!openRef.current) gsap.set(overlay, { display: "none" });
         },
       });
     }
@@ -111,7 +118,7 @@ export function Drawer({
 
           <div className="flex items-center gap-1 shrink-0 ml-auto">
             {actions}
-            {(actions && onExpand) && (
+            {actions && onExpand && (
               <div className="w-px h-4 bg-zinc-800 mx-1" />
             )}
             {onExpand && (

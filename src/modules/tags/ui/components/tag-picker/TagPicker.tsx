@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Tag as TagIcon } from "lucide-react";
 
 import type { Id } from "@/convex/_generated/dataModel";
+import { useToast } from "@/shared/hooks/use-toast";
 import { TagChip } from "../tag-chip";
 import {
   pickColorFromName,
@@ -20,9 +21,11 @@ type TagPickerProps = {
 };
 
 export function TagPicker({ noteId }: TagPickerProps) {
+  const { toast } = useToast();
   const { tags: allTags } = useAllTags();
   const { tags: assigned } = useTagsForNote(noteId);
-  const { createTag, assignTagToNote, unassignTagFromNote } = useTagActions();
+  const { createAndAssignTag, assignTagToNote, unassignTagFromNote } =
+    useTagActions();
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -84,24 +87,29 @@ export function TagPicker({ noteId }: TagPickerProps) {
       } else {
         await assignTagToNote(noteId, tagId);
       }
-    } catch {}
+    } catch {
+      toast.error({ title: "Could not update tag" });
+    }
   };
 
   const handleCreate = async () => {
     if (!noteId || !trimmed) return;
     try {
       const color = pickColorFromName(trimmed);
-      const newId = await createTag(trimmed, color);
-      await assignTagToNote(noteId, newId);
+      await createAndAssignTag(noteId, trimmed, color);
       setQuery("");
-    } catch {}
+    } catch {
+      toast.error({ title: "Could not create tag" });
+    }
   };
 
   const handleRemove = async (tagId: Id<"tags">) => {
     if (!noteId) return;
     try {
       await unassignTagFromNote(noteId, tagId);
-    } catch {}
+    } catch {
+      toast.error({ title: "Could not remove tag" });
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -141,9 +149,7 @@ export function TagPicker({ noteId }: TagPickerProps) {
         </button>
 
         {open && (
-          <div
-            className="absolute top-full left-0 mt-2 z-30 w-60 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl shadow-black/40 p-2"
-          >
+          <div className="absolute top-full left-0 mt-2 z-30 w-60 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl shadow-black/40 p-2">
             <input
               ref={inputRef}
               type="text"

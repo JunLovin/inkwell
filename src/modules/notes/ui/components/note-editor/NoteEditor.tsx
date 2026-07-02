@@ -7,9 +7,7 @@ import { $getRoot, type EditorState } from "lexical";
 
 import { Divider } from "@/shared/ui/divider";
 import { createEditorConfig, EditorPluginsBundle } from "@/lib/lexical";
-import type { SaveStatus } from "../../../domain/services/editor-constants";
-
-export type { SaveStatus };
+import { PREVIEW_CHAR_LIMIT } from "../../../domain/services/editor-constants";
 
 type NoteEditorProps = {
   initialTitle?: string;
@@ -17,7 +15,6 @@ type NoteEditorProps = {
   onTitleChange?: (title: string) => void;
   onContentChange?: (content: string, preview: string) => void;
   onClose?: () => void;
-  saveStatus?: SaveStatus;
 };
 
 const editorConfig = createEditorConfig("inkwell-note-editor");
@@ -40,7 +37,7 @@ export function NoteEditor({
   const handleEditorChange = (editorState: EditorState) => {
     const json = JSON.stringify(editorState.toJSON());
     const preview = editorState.read(() =>
-      $getRoot().getTextContent().slice(0, 150),
+      $getRoot().getTextContent().slice(0, PREVIEW_CHAR_LIMIT),
     );
     onContentChange?.(json, preview);
   };

@@ -84,11 +84,59 @@ export const deleteTag = mutation({
       .query("noteTags")
       .withIndex("by_tag_id", (q) => q.eq("tagId", args.id))
       .collect();
-    for (const link of links) {
-      await ctx.db.delete("noteTags", link._id);
-    }
+    await Promise.all(links.map((link) => ctx.db.delete("noteTags", link._id)));
 
     await ctx.db.delete("tags", args.id);
+  },
+});
+
+export const createAndAssignTag = mutation({
+  args: {
+    noteId: v.id("notes"),
+    name: v.string(),
+    color: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw errors.notAuthenticated();
+
+    const note = await ctx.db.get("notes", args.noteId);
+    if (!note) throw errors.notFound("Note");
+    if (note.authorId !== userId) throw errors.notAuthorized();
+
+    const name = args.name.trim();
+    if (!name) throw errors.invalidInput("Tag name is required");
+
+    const existing = await ctx.db
+      .query("tags")
+      .withIndex("by_author_and_name", (q) =>
+        q.eq("authorId", userId).eq("name", name),
+      )
+      .first();
+
+    const tagId =
+      existing?._id ??
+      (await ctx.db.insert("tags", {
+        authorId: userId,
+        name,
+        color: args.color,
+      }));
+
+    const existingLink = await ctx.db
+      .query("noteTags")
+      .withIndex("by_note_and_tag", (q) =>
+        q.eq("noteId", args.noteId).eq("tagId", tagId),
+      )
+      .first();
+    if (!existingLink) {
+      await ctx.db.insert("noteTags", {
+        authorId: userId,
+        noteId: args.noteId,
+        tagId,
+      });
+    }
+
+    return tagId;
   },
 });
 
@@ -147,6 +195,10 @@ export const listTagsForNote = query({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw errors.notAuthenticated();
 
+    const note = await ctx.db.get("notes", args.noteId);
+    if (!note) throw errors.notFound("Note");
+    if (note.authorId !== userId) throw errors.notAuthorized();
+
     const links = await ctx.db
       .query("noteTags")
       .withIndex("by_note_id", (q) => q.eq("noteId", args.noteId))
@@ -156,9 +208,7 @@ export const listTagsForNote = query({
       links.map((link) => ctx.db.get("tags", link.tagId)),
     );
 
-    return tags
-      .filter((t): t is NonNullable<typeof t> => t !== null)
-      .filter((t) => t.authorId === userId);
+    return tags.filter((t): t is NonNullable<typeof t> => t !== null);
   },
 });
 

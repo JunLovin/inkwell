@@ -32,8 +32,10 @@ function makeRepo(
     pin: vi.fn(async () => {}),
     unpin: vi.fn(async () => {}),
     remove: vi.fn(async () => {}),
-    bulkArchive: vi.fn(async () => {}),
-    bulkDelete: vi.fn(async () => {}),
+    hardRemove: vi.fn(async () => {}),
+    bulkArchive: vi.fn(async () => ({ processed: 0, skipped: 0 })),
+    bulkDelete: vi.fn(async () => ({ processed: 0, skipped: 0 })),
+    bulkHardDelete: vi.fn(async () => ({ processed: 0, skipped: 0 })),
     ...mutationOverrides,
   };
   return {
@@ -44,6 +46,10 @@ function makeRepo(
     }),
     useArchivedList: () => ({
       notes: notes.filter((n) => n.isArchived),
+      isLoading: false,
+    }),
+    useDeletedList: () => ({
+      notes: notes.filter((n) => n.isDeleted),
       isLoading: false,
     }),
     useGet: (slug) => ({
@@ -108,12 +114,15 @@ describe("createNotesService", () => {
         content: "{}",
         preview: " p ",
       });
-      expect(create).toHaveBeenCalledWith({
-        title: "Hello World",
-        slug: "hello-world",
-        content: "{}",
-        preview: "p",
-      });
+      expect(create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Hello World",
+          content: "{}",
+          preview: "p",
+        }),
+      );
+      const firstCall = create.mock.calls[0] as unknown as [{ slug: string }];
+      expect(firstCall[0].slug).toMatch(/^hello-world-[a-z0-9]{6}$/);
     });
 
     it('falls back to "Untitled" when title is empty', async () => {
@@ -126,8 +135,10 @@ describe("createNotesService", () => {
         preview: "",
       });
       expect(create).toHaveBeenCalledWith(
-        expect.objectContaining({ title: "Untitled", slug: "untitled" }),
+        expect.objectContaining({ title: "Untitled" }),
       );
+      const firstCall = create.mock.calls[0] as unknown as [{ slug: string }];
+      expect(firstCall[0].slug).toMatch(/^untitled-[a-z0-9]{6}$/);
     });
   });
 
@@ -143,8 +154,10 @@ describe("createNotesService", () => {
         pin: vi.fn(async () => {}),
         unpin: vi.fn(async () => {}),
         remove: vi.fn(async () => {}),
-        bulkArchive: vi.fn(async () => {}),
-        bulkDelete: vi.fn(async () => {}),
+        hardRemove: vi.fn(async () => {}),
+        bulkArchive: vi.fn(async () => ({ processed: 0, skipped: 0 })),
+        bulkDelete: vi.fn(async () => ({ processed: 0, skipped: 0 })),
+        bulkHardDelete: vi.fn(async () => ({ processed: 0, skipped: 0 })),
       };
       const svc = createNotesService(makeRepo([], mutations));
       const { result } = renderHook(() => svc.useNoteActions());

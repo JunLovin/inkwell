@@ -19,6 +19,8 @@ import { useNoteActions } from "../../infrastructure/hooks/use-note-actions";
 import { useAutoSaveNote } from "../../infrastructure/hooks/use-autosave-note";
 import {
   PREVIEW_CHAR_LIMIT,
+  saveStatusColor,
+  saveStatusLongLabel,
   type SaveStatus,
 } from "../../domain/services/editor-constants";
 
@@ -26,24 +28,12 @@ import { timeAgo } from "../../domain/services/time-ago";
 
 type Props = { slug: string };
 
-const saveStatusText: Record<SaveStatus, string> = {
-  idle: "All changes saved",
-  saving: "Saving...",
-  saved: "Saved",
-};
-
-const saveStatusColor: Record<SaveStatus, string> = {
-  idle: "text-transparent",
-  saving: "text-zinc-600",
-  saved: "text-zinc-500",
-};
-
 function SaveStatusIndicator({ status }: { status: SaveStatus }) {
   return (
     <span
       className={`text-xs select-none transition-colors duration-300 ${saveStatusColor[status]}`}
     >
-      {saveStatusText[status]}
+      {saveStatusLongLabel[status]}
     </span>
   );
 }

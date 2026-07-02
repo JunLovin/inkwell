@@ -2,48 +2,62 @@ import { describe, expect, it } from "vitest";
 
 import { generateSlug } from "./note-slug";
 
+const SUFFIX = /-[a-z0-9]{6}$/;
+
+function base(slug: string): string {
+  return slug.replace(SUFFIX, "");
+}
+
 describe("generateSlug", () => {
   it("lowercases and joins words with dashes", () => {
-    expect(generateSlug("My First Note")).toBe("my-first-note");
+    const slug = generateSlug("My First Note");
+    expect(base(slug)).toBe("my-first-note");
+    expect(slug).toMatch(SUFFIX);
   });
 
   it("collapses runs of whitespace", () => {
-    expect(generateSlug("Hello    world")).toBe("hello-world");
+    expect(base(generateSlug("Hello    world"))).toBe("hello-world");
   });
 
   it("trims leading and trailing whitespace before slugifying", () => {
-    expect(generateSlug("   spaced   ")).toBe("spaced");
+    expect(base(generateSlug("   spaced   "))).toBe("spaced");
   });
 
   it("strips characters outside [a-z0-9-]", () => {
-    expect(generateSlug("Hello, World! 123")).toBe("hello-world-123");
+    expect(base(generateSlug("Hello, World! 123"))).toBe("hello-world-123");
   });
 
-  it("returns an empty string when input has no slug-safe characters", () => {
-    expect(generateSlug("!!!")).toBe("");
+  it("falls back to 'note' when input has no slug-safe characters", () => {
+    expect(base(generateSlug("!!!"))).toBe("note");
   });
 
   it("preserves digits", () => {
-    expect(generateSlug("note 42")).toBe("note-42");
+    expect(base(generateSlug("note 42"))).toBe("note-42");
   });
 
   it("strips accented characters (no transliteration)", () => {
-    expect(generateSlug("Café écolier")).toBe("caf-colier");
+    expect(base(generateSlug("Café écolier"))).toBe("caf-colier");
   });
 
-  it("strips non-ascii letters entirely", () => {
-    expect(generateSlug("日本語 note")).toBe("-note");
+  it("falls back to 'note' for non-ascii-only input", () => {
+    expect(base(generateSlug("日本語"))).toBe("note");
   });
 
-  it("strips surrounding punctuation entirely", () => {
-    expect(generateSlug("!hello!")).toBe("hello");
+  it("strips surrounding punctuation and returns the trimmed slug", () => {
+    expect(base(generateSlug("!hello!"))).toBe("hello");
   });
 
-  it("may produce a leading dash when punctuation is followed by whitespace", () => {
-    expect(generateSlug(". hello")).toBe("-hello");
+  it("collapses leading dashes produced by punctuation", () => {
+    expect(base(generateSlug(". hello"))).toBe("hello");
   });
 
-  it("returns an empty string for whitespace-only input", () => {
-    expect(generateSlug("   ")).toBe("");
+  it("falls back to 'note' for whitespace-only input", () => {
+    expect(base(generateSlug("   "))).toBe("note");
+  });
+
+  it("produces different suffixes across calls with the same title", () => {
+    const a = generateSlug("Same title");
+    const b = generateSlug("Same title");
+    expect(a).not.toBe(b);
   });
 });

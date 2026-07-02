@@ -20,6 +20,7 @@ export const convexFolderRepository: FolderRepositoryPort = {
     const deleteFolder = useMutation(api.folders.deleteFolder);
     const moveNote = useMutation(api.folders.moveNoteToFolder);
     const removeNote = useMutation(api.folders.removeNoteFromFolder);
+    const createAndAssign = useMutation(api.folders.createAndAssignFolder);
 
     return {
       create: async (input) => {
@@ -36,6 +37,9 @@ export const convexFolderRepository: FolderRepositoryPort = {
       },
       removeNote: async (noteId) => {
         await removeNote({ noteId });
+      },
+      createAndAssign: async ({ noteId, name, color }) => {
+        return await createAndAssign({ noteId, name, color });
       },
     };
   },

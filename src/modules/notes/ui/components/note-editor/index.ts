@@ -1,1 +1,1 @@
-export { NoteEditor, type SaveStatus } from "./NoteEditor";
+export { NoteEditor } from "./NoteEditor";

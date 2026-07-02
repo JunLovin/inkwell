@@ -9,7 +9,7 @@ export const getUserInfo = query({
     if (!userId) throw errors.notAuthenticated();
 
     const identity = await ctx.db.get("users", userId);
-    if (!identity) throw errors.notAuthenticated();
+    if (!identity) throw errors.notFound("User");
 
     return identity;
   },
@@ -35,14 +35,31 @@ export const deleteAccount = mutation({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw errors.notAuthenticated();
 
-    const notes = await ctx.db
-      .query("notes")
-      .withIndex("by_author_id", (q) => q.eq("authorId", userId))
-      .collect();
+    const [notes, folders, tags, noteTags] = await Promise.all([
+      ctx.db
+        .query("notes")
+        .withIndex("by_author_id", (q) => q.eq("authorId", userId))
+        .collect(),
+      ctx.db
+        .query("folders")
+        .withIndex("by_author_id", (q) => q.eq("authorId", userId))
+        .collect(),
+      ctx.db
+        .query("tags")
+        .withIndex("by_author_id", (q) => q.eq("authorId", userId))
+        .collect(),
+      ctx.db
+        .query("noteTags")
+        .withIndex("by_author_id", (q) => q.eq("authorId", userId))
+        .collect(),
+    ]);
 
-    for (const note of notes) {
-      await ctx.db.delete("notes", note._id);
-    }
+    await Promise.all([
+      ...noteTags.map((link) => ctx.db.delete("noteTags", link._id)),
+      ...notes.map((note) => ctx.db.delete("notes", note._id)),
+      ...folders.map((folder) => ctx.db.delete("folders", folder._id)),
+      ...tags.map((tag) => ctx.db.delete("tags", tag._id)),
+    ]);
 
     await ctx.db.delete("users", userId);
   },

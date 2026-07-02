@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { usePathname, useParams } from "next/navigation";
 import { Eraser, Sparkles, X } from "lucide-react";
 import gsap from "gsap";
@@ -23,7 +23,7 @@ import { AIChatTyping } from "./AIChatTyping";
 import { AIChatAttachment } from "./AIChatAttachment";
 import { AIChatInput } from "./AIChatInput";
 
-const EMPTY_MESSAGES: ChatMessage[] = [];
+const EMPTY_MESSAGES: readonly ChatMessage[] = Object.freeze([]);
 
 export function AIChatPanel() {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -63,6 +63,8 @@ export function AIChatPanel() {
     const panel = panelRef.current;
     if (!panel) return;
 
+    gsap.killTweensOf(panel);
+
     if (isOpen) {
       gsap.set(panel, { display: "flex" });
       gsap.fromTo(
@@ -86,7 +88,9 @@ export function AIChatPanel() {
         duration: 0.25,
         ease: "power3.in",
         onComplete: () => {
-          gsap.set(panel, { display: "none" });
+          if (!useAIChatStore.getState().isOpen) {
+            gsap.set(panel, { display: "none" });
+          }
         },
       });
     }
@@ -114,40 +118,52 @@ export function AIChatPanel() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  const runPrompt = async (text: string, history: ChatMessage[]) => {
-    setLoading(true);
-    try {
-      const response = await sendMessage({
-        history,
-        text,
-        attachedFiles,
-        attachedNote,
-      });
-      addMessage({ role: "assistant", content: response });
-    } catch {
-      addMessage({
-        role: "assistant",
-        content: "Sorry, something went wrong. Please try again.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const runPrompt = useCallback(
+    async (text: string, history: ChatMessage[]) => {
+      setLoading(true);
+      try {
+        const response = await sendMessage({
+          history,
+          text,
+          attachedFiles,
+          attachedNote,
+        });
+        addMessage({ role: "assistant", content: response });
+      } catch {
+        addMessage({
+          role: "assistant",
+          content: "Sorry, something went wrong. Please try again.",
+        });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [sendMessage, attachedFiles, attachedNote, addMessage, setLoading],
+  );
 
   const handleSubmit = async (text: string) => {
+    const history =
+      useAIChatStore.getState().contextMessages[
+        useAIChatStore.getState().currentContext
+      ] ?? [];
     addMessage({ role: "user", content: text });
-    await runPrompt(text, messages);
+    await runPrompt(text, history);
   };
 
   const handleRegenerate = async () => {
     if (isLoading) return;
-    const lastUser = [...messages]
+    const state = useAIChatStore.getState();
+    const currentMessages = state.contextMessages[state.currentContext] ?? [];
+    const lastUser = [...currentMessages]
       .reverse()
       .find((m) => m.role === "user");
     if (!lastUser) return;
     removeLastAssistantMessage();
-    const historyWithoutLast = messages.slice(0, -1);
-    await runPrompt(lastUser.content, historyWithoutLast);
+    const afterRemoval =
+      useAIChatStore.getState().contextMessages[
+        useAIChatStore.getState().currentContext
+      ] ?? [];
+    await runPrompt(lastUser.content, afterRemoval);
   };
 
   return (

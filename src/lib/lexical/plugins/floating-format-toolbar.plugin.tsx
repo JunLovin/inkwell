@@ -10,7 +10,7 @@ import {
   FORMAT_TEXT_COMMAND,
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
-import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
+import { $isLinkNode, LinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
 import { gsap } from "gsap";
 import {
   Bold,
@@ -82,16 +82,12 @@ export function FloatingFormatToolbarPlugin() {
             return;
           }
 
-          const linkNode = sel
+          const linkParent = sel
             .getNodes()
-            .find((node) => $isLinkNode(node.getParent()));
-          const isLink = !!linkNode;
-          const linkUrl =
-            isLink && $isLinkNode(linkNode?.getParent())
-              ? ((
-                  linkNode.getParent() as { getURL?: () => string }
-                ).getURL?.() ?? "")
-              : "";
+            .map((node) => node.getParent())
+            .find((parent): parent is LinkNode => $isLinkNode(parent));
+          const isLink = !!linkParent;
+          const linkUrl = linkParent ? linkParent.getURL() : "";
 
           setActiveFormats({
             bold: sel.hasFormat("bold"),

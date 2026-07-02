@@ -48,19 +48,23 @@ export function NotesGrid({
     const grid = gridRef.current;
     if (!grid) return;
 
-    const cards = grid.querySelectorAll(".note-card-anim");
-    gsap.fromTo(
-      cards,
-      { opacity: 0, y: 20, filter: "blur(4px)" },
-      {
-        opacity: 1,
-        y: 0,
-        filter: "blur(0px)",
-        duration: 0.5,
-        stagger: { amount: 0.3, ease: "power2.out" },
-        ease: "power3.out",
-      },
-    );
+    const ctx = gsap.context(() => {
+      const cards = grid.querySelectorAll(".note-card-anim");
+      gsap.fromTo(
+        cards,
+        { opacity: 0, y: 20, filter: "blur(4px)" },
+        {
+          opacity: 1,
+          y: 0,
+          filter: "blur(0px)",
+          duration: 0.5,
+          stagger: { amount: 0.3, ease: "power2.out" },
+          ease: "power3.out",
+        },
+      );
+    }, grid);
+
+    return () => ctx.revert();
   }, [notes.length]);
 
   if (notes.length === 0) {

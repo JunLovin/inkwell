@@ -1,8 +1,20 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, type MutationCtx } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { errors } from "./_shared/errors";
 import { buildSearchableContent } from "./_shared/lexicalText";
+import type { Id } from "./_generated/dataModel";
+
+async function requireOwnedNote(
+  ctx: MutationCtx,
+  id: Id<"notes">,
+  userId: Id<"users">,
+) {
+  const note = await ctx.db.get("notes", id);
+  if (!note) throw errors.notFound("Note");
+  if (note.authorId !== userId) throw errors.notAuthorized();
+  return note;
+}
 
 export const getNotes = query({
   args: {},
@@ -80,9 +92,7 @@ export const updateNote = mutation({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw errors.notAuthenticated();
 
-    const note = await ctx.db.get("notes", args.id);
-    if (!note) throw errors.notFound("Note");
-    if (note.authorId !== userId) throw errors.notAuthorized();
+    const note = await requireOwnedNote(ctx, args.id, userId);
 
     const nextTitle = args.title ?? note.title;
     const nextContent = args.content ?? note.content;
@@ -103,11 +113,29 @@ export const deleteNote = mutation({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw errors.notAuthenticated();
 
-    const note = await ctx.db.get("notes", args.id);
-    if (!note) throw errors.notFound("Note");
-    if (note.authorId !== userId) throw errors.notAuthorized();
+    await requireOwnedNote(ctx, args.id, userId);
+    await ctx.db.patch("notes", args.id, {
+      isDeleted: true,
+      updatedAt: Date.now(),
+    });
+  },
+});
 
-    await ctx.db.patch("notes", args.id, { isDeleted: true });
+export const hardDeleteNote = mutation({
+  args: { id: v.id("notes") },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw errors.notAuthenticated();
+
+    await requireOwnedNote(ctx, args.id, userId);
+
+    const links = await ctx.db
+      .query("noteTags")
+      .withIndex("by_note_id", (q) => q.eq("noteId", args.id))
+      .collect();
+    await Promise.all(links.map((link) => ctx.db.delete("noteTags", link._id)));
+
+    await ctx.db.delete("notes", args.id);
   },
 });
 
@@ -117,11 +145,11 @@ export const archiveNote = mutation({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw errors.notAuthenticated();
 
-    const note = await ctx.db.get("notes", args.id);
-    if (!note) throw errors.notFound("Note");
-    if (note.authorId !== userId) throw errors.notAuthorized();
-
-    await ctx.db.patch("notes", args.id, { isArchived: true });
+    await requireOwnedNote(ctx, args.id, userId);
+    await ctx.db.patch("notes", args.id, {
+      isArchived: true,
+      updatedAt: Date.now(),
+    });
   },
 });
 
@@ -131,11 +159,11 @@ export const markNoteAsFavorite = mutation({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw errors.notAuthenticated();
 
-    const note = await ctx.db.get("notes", args.id);
-    if (!note) throw errors.notFound("Note");
-    if (note.authorId !== userId) throw errors.notAuthorized();
-
-    await ctx.db.patch("notes", args.id, { isFavorite: true });
+    await requireOwnedNote(ctx, args.id, userId);
+    await ctx.db.patch("notes", args.id, {
+      isFavorite: true,
+      updatedAt: Date.now(),
+    });
   },
 });
 
@@ -145,11 +173,11 @@ export const pinNote = mutation({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw errors.notAuthenticated();
 
-    const note = await ctx.db.get("notes", args.id);
-    if (!note) throw errors.notFound("Note");
-    if (note.authorId !== userId) throw errors.notAuthorized();
-
-    await ctx.db.patch("notes", args.id, { isPinned: true });
+    await requireOwnedNote(ctx, args.id, userId);
+    await ctx.db.patch("notes", args.id, {
+      isPinned: true,
+      updatedAt: Date.now(),
+    });
   },
 });
 
@@ -159,11 +187,11 @@ export const unpinNote = mutation({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw errors.notAuthenticated();
 
-    const note = await ctx.db.get("notes", args.id);
-    if (!note) throw errors.notFound("Note");
-    if (note.authorId !== userId) throw errors.notAuthorized();
-
-    await ctx.db.patch("notes", args.id, { isPinned: false });
+    await requireOwnedNote(ctx, args.id, userId);
+    await ctx.db.patch("notes", args.id, {
+      isPinned: false,
+      updatedAt: Date.now(),
+    });
   },
 });
 
@@ -173,11 +201,11 @@ export const removeFavoriteNote = mutation({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw errors.notAuthenticated();
 
-    const note = await ctx.db.get("notes", args.id);
-    if (!note) throw errors.notFound("Note");
-    if (note.authorId !== userId) throw errors.notAuthorized();
-
-    await ctx.db.patch("notes", args.id, { isFavorite: false });
+    await requireOwnedNote(ctx, args.id, userId);
+    await ctx.db.patch("notes", args.id, {
+      isFavorite: false,
+      updatedAt: Date.now(),
+    });
   },
 });
 
@@ -196,18 +224,31 @@ export const getArchivedNotes = query({
   },
 });
 
+export const getDeletedNotes = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw errors.notAuthenticated();
+
+    const notes = await ctx.db
+      .query("notes")
+      .withIndex("by_author_id", (q) => q.eq("authorId", userId))
+      .order("desc")
+      .collect();
+    return notes.filter((n) => n.isDeleted);
+  },
+});
+
 export const restoreNote = mutation({
   args: { id: v.id("notes") },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw errors.notAuthenticated();
 
-    const note = await ctx.db.get("notes", args.id);
-    if (!note) throw errors.notFound("Note");
-    if (note.authorId !== userId) throw errors.notAuthorized();
-
+    await requireOwnedNote(ctx, args.id, userId);
     await ctx.db.patch("notes", args.id, {
       isArchived: false,
+      isDeleted: false,
       updatedAt: Date.now(),
     });
   },
@@ -219,11 +260,15 @@ export const bulkArchiveNotes = mutation({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw errors.notAuthenticated();
 
+    const now = Date.now();
+    let processed = 0;
     for (const id of args.ids) {
       const note = await ctx.db.get("notes", id);
       if (!note || note.authorId !== userId) continue;
-      await ctx.db.patch("notes", id, { isArchived: true });
+      await ctx.db.patch("notes", id, { isArchived: true, updatedAt: now });
+      processed += 1;
     }
+    return { processed, skipped: args.ids.length - processed };
   },
 });
 
@@ -233,11 +278,41 @@ export const bulkDeleteNotes = mutation({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw errors.notAuthenticated();
 
+    const now = Date.now();
+    let processed = 0;
     for (const id of args.ids) {
       const note = await ctx.db.get("notes", id);
       if (!note || note.authorId !== userId) continue;
-      await ctx.db.patch("notes", id, { isDeleted: true });
+      await ctx.db.patch("notes", id, { isDeleted: true, updatedAt: now });
+      processed += 1;
     }
+    return { processed, skipped: args.ids.length - processed };
+  },
+});
+
+export const bulkHardDeleteNotes = mutation({
+  args: { ids: v.array(v.id("notes")) },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw errors.notAuthenticated();
+
+    let processed = 0;
+    for (const id of args.ids) {
+      const note = await ctx.db.get("notes", id);
+      if (!note || note.authorId !== userId) continue;
+
+      const links = await ctx.db
+        .query("noteTags")
+        .withIndex("by_note_id", (q) => q.eq("noteId", id))
+        .collect();
+      await Promise.all(
+        links.map((link) => ctx.db.delete("noteTags", link._id)),
+      );
+
+      await ctx.db.delete("notes", id);
+      processed += 1;
+    }
+    return { processed, skipped: args.ids.length - processed };
   },
 });
 
@@ -250,14 +325,15 @@ export const searchNotes = query({
     const trimmed = args.search.trim();
     if (!trimmed) return [];
 
-    const results = await ctx.db
+    return await ctx.db
       .query("notes")
       .withSearchIndex("search_content", (q) =>
-        q.search("searchableContent", trimmed).eq("authorId", userId),
+        q
+          .search("searchableContent", trimmed)
+          .eq("authorId", userId)
+          .eq("isDeleted", false),
       )
       .take(50);
-
-    return results.filter((n) => !n.isDeleted);
   },
 });
 

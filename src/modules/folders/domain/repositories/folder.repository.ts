@@ -8,12 +8,19 @@ export type CreateFolderInput = {
   color: string;
 };
 
+export type CreateAndAssignFolderInput = {
+  noteId: NoteId;
+  name: string;
+  color: string;
+};
+
 export type FolderMutations = {
   create: (input: CreateFolderInput) => Promise<FolderId>;
   rename: (id: FolderId, name: string) => Promise<void>;
   remove: (id: FolderId) => Promise<void>;
   moveNote: (noteId: NoteId, folderId: FolderId) => Promise<void>;
   removeNote: (noteId: NoteId) => Promise<void>;
+  createAndAssign: (input: CreateAndAssignFolderInput) => Promise<FolderId>;
 };
 
 export type FolderRepositoryPort = {

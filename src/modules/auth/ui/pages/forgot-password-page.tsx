@@ -5,21 +5,15 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import gsap from "gsap";
 
 import { Button, Input } from "@/shared/ui";
 import { useToast } from "@/shared/hooks/use-toast";
 import { useAuthActions } from "../../infrastructure/hooks/use-auth";
-
-const forgotSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Enter a valid email address"),
-});
-
-type ForgotSchema = z.infer<typeof forgotSchema>;
+import {
+  forgotPasswordSchema,
+  type ForgotPasswordSchema,
+} from "../schemas/forgot-password.schema";
 
 export function ForgotPasswordPage() {
   const { requestPasswordReset } = useAuthActions();
@@ -38,8 +32,8 @@ export function ForgotPasswordPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<ForgotSchema>({
-    resolver: zodResolver(forgotSchema),
+  } = useForm<ForgotPasswordSchema>({
+    resolver: zodResolver(forgotPasswordSchema),
   });
 
   useEffect(() => {
@@ -84,7 +78,7 @@ export function ForgotPasswordPage() {
     );
   }, [submitted]);
 
-  const onSubmit = async (data: ForgotSchema) => {
+  const onSubmit = async (data: ForgotPasswordSchema) => {
     try {
       await requestPasswordReset(data.email);
       setSentTo(data.email);
@@ -119,7 +113,7 @@ export function ForgotPasswordPage() {
 
         <div className="space-y-3">
           <Link
-            href={`/auth/reset-password?email=${encodeURIComponent(sentTo)}`}
+            href={`/reset-password?email=${encodeURIComponent(sentTo)}`}
             className="w-full flex items-center justify-center gap-2 rounded-2xl bg-white text-zinc-900 hover:bg-zinc-100 text-sm font-medium py-3.5 transition-colors duration-200"
           >
             I have the code

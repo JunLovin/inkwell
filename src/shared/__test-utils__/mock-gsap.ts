@@ -17,6 +17,7 @@ const gsapMock = {
   fromTo: () => chain(),
   set: () => chain(),
   timeline: () => chain(),
+  killTweensOf: () => {},
   context: (fn: () => void) => {
     fn();
     return { revert: () => {} };

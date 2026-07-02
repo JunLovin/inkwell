@@ -13,8 +13,8 @@ export function RestoreContentPlugin({ content }: { content: string }) {
       const state = editor.parseEditorState(content);
       editor.setEditorState(state);
       restored.current = true;
-    } catch {
-      // not valid JSON - leave editor empty
+    } catch (err) {
+      console.warn("[lexical] failed to restore editor content", err);
     }
   }, [editor, content]);
 

@@ -33,8 +33,7 @@ export function createNotesService(repo: NoteRepositoryPort) {
     sortOrder: SortOrder,
   ): NotesListView {
     const filtered = useMemo(
-      () =>
-        filterAndSort(source.notes ?? [], { status, search, sortOrder }),
+      () => filterAndSort(source.notes ?? [], { status, search, sortOrder }),
       [source.notes, status, search, sortOrder],
     );
     return { notes: filtered, isLoading: source.isLoading };
@@ -51,6 +50,23 @@ export function createNotesService(repo: NoteRepositoryPort) {
 
     useArchivedNotes: (search: string, sortOrder: SortOrder): NotesListView =>
       useFilteredNotes(repo.useArchivedList(), "archived", search, sortOrder),
+
+    useDeletedNotes: (search: string, sortOrder: SortOrder): NotesListView => {
+      const source = repo.useDeletedList();
+      const filtered = useMemo(() => {
+        const list = source.notes ?? [];
+        const s = search.trim().toLowerCase();
+        const matched = s
+          ? list.filter((n) => n.title.toLowerCase().includes(s))
+          : list;
+        return [...matched].sort((a, b) => {
+          const at = a.updatedAt ?? a._creationTime;
+          const bt = b.updatedAt ?? b._creationTime;
+          return sortOrder === "desc" ? bt - at : at - bt;
+        });
+      }, [source.notes, search, sortOrder]);
+      return { notes: filtered, isLoading: source.isLoading };
+    },
 
     useNote: (slug: string) => repo.useGet(slug),
 
@@ -82,8 +98,10 @@ export function createNotesService(repo: NoteRepositoryPort) {
         pinNote: mutations.pin,
         unpinNote: mutations.unpin,
         deleteNote: mutations.remove,
+        hardDeleteNote: mutations.hardRemove,
         bulkArchiveNotes: mutations.bulkArchive,
         bulkDeleteNotes: mutations.bulkDelete,
+        bulkHardDeleteNotes: mutations.bulkHardDelete,
       };
     },
   };

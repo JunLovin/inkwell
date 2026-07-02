@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useMemo } from "react";
+
 import { gsap } from "gsap";
 import { useRouter } from "next/navigation";
 import {
@@ -29,6 +30,7 @@ export function DashboardHomePage() {
   const { user } = useCurrentUser();
   const router = useRouter();
 
+  const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
   const recentHeaderRef = useRef<HTMLDivElement>(null);
@@ -86,7 +88,7 @@ export function DashboardHomePage() {
           },
           "-=0.25",
         );
-    });
+    }, containerRef);
 
     return () => ctx.revert();
   }, [isLoading]);
@@ -138,7 +140,7 @@ export function DashboardHomePage() {
   ];
 
   return (
-    <div className="flex flex-col h-full gap-6 px-6 py-6">
+    <div ref={containerRef} className="flex flex-col h-full gap-6 px-6 py-6">
       <div ref={headerRef} className="flex items-start justify-between gap-4">
         <div>
           <p className="text-zinc-600 text-xs mb-2 tracking-wide">{today}</p>

@@ -1,11 +1,12 @@
 import type { HTMLAttributes, ReactNode } from "react";
 
 type CardVariant = "default" | "raised" | "ghost";
+type CardPadding = "sm" | "md" | "lg" | "none";
 
 type CardProps = HTMLAttributes<HTMLDivElement> & {
   variant?: CardVariant;
   children: ReactNode;
-  padding?: "sm" | "md" | "lg" | "none";
+  padding?: CardPadding;
 };
 
 const variantStyles: Record<CardVariant, string> = {
@@ -14,7 +15,7 @@ const variantStyles: Record<CardVariant, string> = {
   ghost: "bg-transparent border-zinc-800/60",
 };
 
-const paddingStyles = {
+const paddingStyles: Record<CardPadding, string> = {
   none: "",
   sm: "p-3",
   md: "p-5",

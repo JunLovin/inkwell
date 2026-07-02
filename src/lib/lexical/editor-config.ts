@@ -49,7 +49,7 @@ export function createEditorConfig(
   return {
     namespace,
     theme: editorTheme,
-    onError: (error: Error) => console.error(error),
+    onError: (error: Error) => console.error("[lexical]", error),
     nodes: editorNodes,
     ...(editorState ? { editorState } : {}),
   };

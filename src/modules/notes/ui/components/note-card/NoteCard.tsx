@@ -24,7 +24,7 @@ const defaultCovers = [
 ];
 
 type NoteCardProps = {
-  note: Partial<Note>;
+  note: Note;
   tags?: Tag[];
   folder?: Folder;
   selectable?: boolean;
@@ -50,7 +50,7 @@ export function NoteCard({
   onRestore,
   onPin,
 }: NoteCardProps) {
-  const cover = defaultCovers[note._id!.charCodeAt(0) % defaultCovers.length];
+  const cover = defaultCovers[note._id.charCodeAt(0) % defaultCovers.length];
   const isFavorite = note.isFavorite ?? false;
   const isPinned = note.isPinned ?? false;
   const hasActions =

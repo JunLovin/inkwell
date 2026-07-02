@@ -36,6 +36,7 @@ export const convexTagRepository: TagRepositoryPort = {
     const deleteTag = useMutation(api.tags.deleteTag);
     const assignTag = useMutation(api.tags.assignTagToNote);
     const unassignTag = useMutation(api.tags.unassignTagFromNote);
+    const createAndAssign = useMutation(api.tags.createAndAssignTag);
 
     return {
       create: async (input) => {
@@ -52,6 +53,9 @@ export const convexTagRepository: TagRepositoryPort = {
       },
       unassignFromNote: async (noteId, tagId) => {
         await unassignTag({ noteId, tagId });
+      },
+      createAndAssign: async ({ noteId, name, color }) => {
+        return await createAndAssign({ noteId, name, color });
       },
     };
   },

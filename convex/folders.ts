@@ -124,3 +124,41 @@ export const removeNoteFromFolder = mutation({
     await ctx.db.patch("notes", args.noteId, { folderId: undefined });
   },
 });
+
+export const createAndAssignFolder = mutation({
+  args: {
+    noteId: v.id("notes"),
+    name: v.string(),
+    color: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw errors.notAuthenticated();
+
+    const note = await ctx.db.get("notes", args.noteId);
+    if (!note) throw errors.notFound("Note");
+    if (note.authorId !== userId) throw errors.notAuthorized();
+
+    const name = args.name.trim();
+    if (!name) throw errors.invalidInput("Folder name is required");
+
+    const existing = await ctx.db
+      .query("folders")
+      .withIndex("by_author_and_name", (q) =>
+        q.eq("authorId", userId).eq("name", name),
+      )
+      .first();
+
+    const folderId =
+      existing?._id ??
+      (await ctx.db.insert("folders", {
+        authorId: userId,
+        name,
+        color: args.color,
+      }));
+
+    await ctx.db.patch("notes", args.noteId, { folderId });
+
+    return folderId;
+  },
+});

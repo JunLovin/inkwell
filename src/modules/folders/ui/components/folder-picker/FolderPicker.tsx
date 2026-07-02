@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Folder as FolderIcon, FolderPlus, Plus } from "lucide-react";
 
 import type { Id } from "@/convex/_generated/dataModel";
+import { useToast } from "@/shared/hooks/use-toast";
 import {
   folderBadgeClasses,
   folderIconClasses,
@@ -20,8 +21,9 @@ type FolderPickerProps = {
 };
 
 export function FolderPicker({ noteId, currentFolderId }: FolderPickerProps) {
+  const { toast } = useToast();
   const { folders } = useAllFolders();
-  const { createFolder, moveNoteToFolder, removeNoteFromFolder } =
+  const { createAndAssignFolder, moveNoteToFolder, removeNoteFromFolder } =
     useFolderActions();
 
   const [open, setOpen] = useState(false);
@@ -83,7 +85,9 @@ export function FolderPicker({ noteId, currentFolderId }: FolderPickerProps) {
       await moveNoteToFolder(noteId, folderId);
       setOpen(false);
       setQuery("");
-    } catch {}
+    } catch {
+      toast.error({ title: "Could not move note" });
+    }
   };
 
   const handleRemove = async () => {
@@ -91,18 +95,21 @@ export function FolderPicker({ noteId, currentFolderId }: FolderPickerProps) {
     try {
       await removeNoteFromFolder(noteId);
       setOpen(false);
-    } catch {}
+    } catch {
+      toast.error({ title: "Could not remove folder" });
+    }
   };
 
   const handleCreate = async () => {
     if (!noteId || !trimmed) return;
     try {
       const color = pickFolderColor(trimmed);
-      const newId = await createFolder(trimmed, color);
-      await moveNoteToFolder(noteId, newId);
+      await createAndAssignFolder(noteId, trimmed, color);
       setQuery("");
       setOpen(false);
-    } catch {}
+    } catch {
+      toast.error({ title: "Could not create folder" });
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

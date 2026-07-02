@@ -12,7 +12,7 @@ import {
   buildExportFilename,
   buildExportPayload,
   isDeleteConfirmed,
-} from "./services";
+} from "../../../domain/services/export";
 
 export function DangerZoneSection() {
   const { notes, isLoading } = useAllNotes();

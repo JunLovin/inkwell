@@ -7,11 +7,18 @@ type ToastStore = {
   remove: (id: string) => void;
 };
 
+function makeId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).slice(2);
+}
+
 export const useToastStore = create<ToastStore>((set) => ({
   toasts: [],
 
   add: (toast) => {
-    const id = Math.random().toString(36).slice(2);
+    const id = makeId();
     set((state) => ({ toasts: [...state.toasts, { id, ...toast }] }));
     return id;
   },

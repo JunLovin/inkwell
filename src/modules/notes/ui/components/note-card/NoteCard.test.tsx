@@ -4,7 +4,7 @@ import type { Note } from "../../../domain/entities/note";
 import { makeNote as baseMakeNote } from "../../../__test-utils__/factories";
 import { NoteCard } from "./NoteCard";
 
-const makeNote = (overrides: Partial<Note> = {}): Partial<Note> =>
+const makeNote = (overrides: Partial<Note> = {}): Note =>
   baseMakeNote({
     title: "My note",
     preview: "preview text",
