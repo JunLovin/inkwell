@@ -12,27 +12,27 @@ const emptyBulkResult: BulkResult = { processed: 0, skipped: 0 };
 
 export const convexNoteRepository: NoteRepositoryPort = {
   useList: () => {
-    const notes = useQuery(api.notes.getNotes, {});
+    const notes = useQuery(api.notes.listNotes, {});
     return { notes: notes ?? undefined, isLoading: notes === undefined };
   },
 
   useFavoriteList: () => {
-    const notes = useQuery(api.notes.getFavoriteNotes, {});
+    const notes = useQuery(api.notes.listFavoriteNotes, {});
     return { notes: notes ?? undefined, isLoading: notes === undefined };
   },
 
   useArchivedList: () => {
-    const notes = useQuery(api.notes.getArchivedNotes, {});
+    const notes = useQuery(api.notes.listArchivedNotes, {});
     return { notes: notes ?? undefined, isLoading: notes === undefined };
   },
 
   useDeletedList: () => {
-    const notes = useQuery(api.notes.getDeletedNotes, {});
+    const notes = useQuery(api.notes.listDeletedNotes, {});
     return { notes: notes ?? undefined, isLoading: notes === undefined };
   },
 
   useGet: (slug: string) => {
-    const note = useQuery(api.notes.getNote, slug ? { slug } : "skip");
+    const note = useQuery(api.notes.getNoteBySlug, slug ? { slug } : "skip");
     return { note: note ?? undefined, isLoading: note === undefined };
   },
 
@@ -49,19 +49,19 @@ export const convexNoteRepository: NoteRepositoryPort = {
   },
 
   useMutations: (): NoteMutations => {
-    const createMutation = useMutation(api.notes.addNote);
+    const createMutation = useMutation(api.notes.createNote);
     const updateMutation = useMutation(api.notes.updateNote);
     const archiveMutation = useMutation(api.notes.archiveNote);
     const restoreMutation = useMutation(api.notes.restoreNote);
-    const favoriteMutation = useMutation(api.notes.markNoteAsFavorite);
-    const unfavoriteMutation = useMutation(api.notes.removeFavoriteNote);
+    const favoriteMutation = useMutation(api.notes.favoriteNote);
+    const unfavoriteMutation = useMutation(api.notes.unfavoriteNote);
     const pinMutation = useMutation(api.notes.pinNote);
     const unpinMutation = useMutation(api.notes.unpinNote);
     const deleteMutation = useMutation(api.notes.deleteNote);
-    const hardDeleteMutation = useMutation(api.notes.hardDeleteNote);
+    const purgeMutation = useMutation(api.notes.purgeNote);
     const bulkArchiveMutation = useMutation(api.notes.bulkArchiveNotes);
     const bulkDeleteMutation = useMutation(api.notes.bulkDeleteNotes);
-    const bulkHardDeleteMutation = useMutation(api.notes.bulkHardDeleteNotes);
+    const bulkPurgeMutation = useMutation(api.notes.bulkPurgeNotes);
 
     return {
       create: async (input) => {
@@ -92,7 +92,7 @@ export const convexNoteRepository: NoteRepositoryPort = {
         await deleteMutation({ id });
       },
       hardRemove: async (id) => {
-        await hardDeleteMutation({ id });
+        await purgeMutation({ id });
       },
       bulkArchive: async (ids) => {
         const result = await bulkArchiveMutation({ ids });
@@ -103,7 +103,7 @@ export const convexNoteRepository: NoteRepositoryPort = {
         return result ?? emptyBulkResult;
       },
       bulkHardDelete: async (ids) => {
-        const result = await bulkHardDeleteMutation({ ids });
+        const result = await bulkPurgeMutation({ ids });
         return result ?? emptyBulkResult;
       },
     };

@@ -1,27 +1,26 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
 import { errors } from "./_shared/errors";
+import { requireUserId } from "./model/auth";
+import { assertFolderOwner, assertNoteOwner } from "./model/ownership";
+import { cascadeDeleteFolder } from "./model/cascade";
 
 export const listFolders = query({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
+    const userId = await requireUserId(ctx);
     return await ctx.db
       .query("folders")
       .withIndex("by_author_id", (q) => q.eq("authorId", userId))
       .order("asc")
-      .collect();
+      .take(500);
   },
 });
 
 export const createFolder = mutation({
   args: { name: v.string(), color: v.string() },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
+    const userId = await requireUserId(ctx);
 
     const name = args.name.trim();
     if (!name) throw errors.invalidInput("Folder name is required");
@@ -45,12 +44,8 @@ export const createFolder = mutation({
 export const renameFolder = mutation({
   args: { id: v.id("folders"), name: v.string() },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    const folder = await ctx.db.get("folders", args.id);
-    if (!folder) throw errors.notFound("Folder");
-    if (folder.authorId !== userId) throw errors.notAuthorized();
+    const userId = await requireUserId(ctx);
+    const folder = await assertFolderOwner(ctx, args.id, userId);
 
     const name = args.name.trim();
     if (!name) throw errors.invalidInput("Folder name is required");
@@ -72,41 +67,18 @@ export const renameFolder = mutation({
 export const deleteFolder = mutation({
   args: { id: v.id("folders") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    const folder = await ctx.db.get("folders", args.id);
-    if (!folder) throw errors.notFound("Folder");
-    if (folder.authorId !== userId) throw errors.notAuthorized();
-
-    const notes = await ctx.db
-      .query("notes")
-      .withIndex("by_author_and_folder", (q) =>
-        q.eq("authorId", userId).eq("folderId", args.id),
-      )
-      .collect();
-    for (const note of notes) {
-      await ctx.db.patch("notes", note._id, { folderId: undefined });
-    }
-
-    await ctx.db.delete("folders", args.id);
+    const userId = await requireUserId(ctx);
+    await assertFolderOwner(ctx, args.id, userId);
+    await cascadeDeleteFolder(ctx, args.id, userId);
   },
 });
 
 export const moveNoteToFolder = mutation({
   args: { noteId: v.id("notes"), folderId: v.id("folders") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    const note = await ctx.db.get("notes", args.noteId);
-    if (!note) throw errors.notFound("Note");
-    if (note.authorId !== userId) throw errors.notAuthorized();
-
-    const folder = await ctx.db.get("folders", args.folderId);
-    if (!folder) throw errors.notFound("Folder");
-    if (folder.authorId !== userId) throw errors.notAuthorized();
-
+    const userId = await requireUserId(ctx);
+    await assertNoteOwner(ctx, args.noteId, userId);
+    await assertFolderOwner(ctx, args.folderId, userId);
     await ctx.db.patch("notes", args.noteId, { folderId: args.folderId });
   },
 });
@@ -114,13 +86,8 @@ export const moveNoteToFolder = mutation({
 export const removeNoteFromFolder = mutation({
   args: { noteId: v.id("notes") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    const note = await ctx.db.get("notes", args.noteId);
-    if (!note) throw errors.notFound("Note");
-    if (note.authorId !== userId) throw errors.notAuthorized();
-
+    const userId = await requireUserId(ctx);
+    await assertNoteOwner(ctx, args.noteId, userId);
     await ctx.db.patch("notes", args.noteId, { folderId: undefined });
   },
 });
@@ -132,12 +99,8 @@ export const createAndAssignFolder = mutation({
     color: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    const note = await ctx.db.get("notes", args.noteId);
-    if (!note) throw errors.notFound("Note");
-    if (note.authorId !== userId) throw errors.notAuthorized();
+    const userId = await requireUserId(ctx);
+    await assertNoteOwner(ctx, args.noteId, userId);
 
     const name = args.name.trim();
     if (!name) throw errors.invalidInput("Folder name is required");

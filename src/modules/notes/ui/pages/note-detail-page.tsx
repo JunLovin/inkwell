@@ -17,6 +17,7 @@ import { FolderPicker } from "@/modules/folders";
 import { useNote } from "../../infrastructure/hooks/use-note";
 import { useNoteActions } from "../../infrastructure/hooks/use-note-actions";
 import { useAutoSaveNote } from "../../infrastructure/hooks/use-autosave-note";
+import { InsertAIContentPlugin } from "../components/note-editor/InsertAIContentPlugin";
 import {
   PREVIEW_CHAR_LIMIT,
   saveStatusColor,
@@ -297,6 +298,7 @@ export function NoteDetailPage({ slug }: Props) {
                   scheduleAutoSave(titleDraft, json, preview);
                 }}
               />
+              <InsertAIContentPlugin noteId={note._id} />
             </div>
           </div>
         </div>

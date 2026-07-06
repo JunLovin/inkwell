@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { convexTest } from "convex-test";
 import schema from "./schema";
 import { api } from "./_generated/api";
-import { seedUser } from "./_shared/test-utils";
+import { seedUser } from "./_shared/test_utils";
 
 const modules = import.meta.glob("./**/*.ts");
 
@@ -96,20 +96,20 @@ describe("deleteFolder", () => {
       color: "r",
     });
     const [folder] = await asUser.query(api.folders.listFolders, {});
-    await asUser.mutation(api.notes.addNote, {
+    await asUser.mutation(api.notes.createNote, {
       title: "t",
       slug: "s",
       content: "{}",
       preview: "",
     });
-    const [note] = await asUser.query(api.notes.getNotes, {});
+    const [note] = await asUser.query(api.notes.listNotes, {});
     await asUser.mutation(api.folders.moveNoteToFolder, {
       noteId: note._id,
       folderId: folder._id,
     });
     await asUser.mutation(api.folders.deleteFolder, { id: folder._id });
-    const after = await asUser.query(api.notes.getNote, { slug: "s" });
-    expect(after.folderId).toBeUndefined();
+    const after = await asUser.query(api.notes.getNoteBySlug, { slug: "s" });
+    expect(after?.folderId).toBeUndefined();
     expect(await asUser.query(api.folders.listFolders, {})).toHaveLength(0);
   });
 
@@ -131,19 +131,19 @@ describe("moveNoteToFolder / removeNoteFromFolder", () => {
     const { asUser } = await seedUser(t);
     await asUser.mutation(api.folders.createFolder, { name: "x", color: "r" });
     const [folder] = await asUser.query(api.folders.listFolders, {});
-    await asUser.mutation(api.notes.addNote, {
+    await asUser.mutation(api.notes.createNote, {
       title: "t",
       slug: "s",
       content: "{}",
       preview: "",
     });
-    const [note] = await asUser.query(api.notes.getNotes, {});
+    const [note] = await asUser.query(api.notes.listNotes, {});
     await asUser.mutation(api.folders.moveNoteToFolder, {
       noteId: note._id,
       folderId: folder._id,
     });
-    const after = await asUser.query(api.notes.getNote, { slug: "s" });
-    expect(after.folderId).toBe(folder._id);
+    const after = await asUser.query(api.notes.getNoteBySlug, { slug: "s" });
+    expect(after?.folderId).toBe(folder._id);
   });
 
   test("removeNoteFromFolder clears folderId", async () => {
@@ -151,13 +151,13 @@ describe("moveNoteToFolder / removeNoteFromFolder", () => {
     const { asUser } = await seedUser(t);
     await asUser.mutation(api.folders.createFolder, { name: "x", color: "r" });
     const [folder] = await asUser.query(api.folders.listFolders, {});
-    await asUser.mutation(api.notes.addNote, {
+    await asUser.mutation(api.notes.createNote, {
       title: "t",
       slug: "s",
       content: "{}",
       preview: "",
     });
-    const [note] = await asUser.query(api.notes.getNotes, {});
+    const [note] = await asUser.query(api.notes.listNotes, {});
     await asUser.mutation(api.folders.moveNoteToFolder, {
       noteId: note._id,
       folderId: folder._id,
@@ -165,8 +165,8 @@ describe("moveNoteToFolder / removeNoteFromFolder", () => {
     await asUser.mutation(api.folders.removeNoteFromFolder, {
       noteId: note._id,
     });
-    const after = await asUser.query(api.notes.getNote, { slug: "s" });
-    expect(after.folderId).toBeUndefined();
+    const after = await asUser.query(api.notes.getNoteBySlug, { slug: "s" });
+    expect(after?.folderId).toBeUndefined();
   });
 
   test("rejects cross-user moves", async () => {
@@ -175,13 +175,13 @@ describe("moveNoteToFolder / removeNoteFromFolder", () => {
     const { asUser: b } = await seedUser(t, "b");
     await a.mutation(api.folders.createFolder, { name: "x", color: "r" });
     const [folder] = await a.query(api.folders.listFolders, {});
-    await b.mutation(api.notes.addNote, {
+    await b.mutation(api.notes.createNote, {
       title: "t",
       slug: "s",
       content: "{}",
       preview: "",
     });
-    const [note] = await b.query(api.notes.getNotes, {});
+    const [note] = await b.query(api.notes.listNotes, {});
     await expect(
       b.mutation(api.folders.moveNoteToFolder, {
         noteId: note._id,

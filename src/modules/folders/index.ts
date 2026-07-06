@@ -13,3 +13,4 @@ export {
 } from "./infrastructure/hooks/use-folders";
 
 export { FolderPicker } from "./ui/components/folder-picker";
+export { FolderQuickCreate } from "./ui/components/folder-quick-create";

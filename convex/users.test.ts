@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { convexTest } from "convex-test";
 import schema from "./schema";
 import { api } from "./_generated/api";
-import { seedUser } from "./_shared/test-utils";
+import { seedUser } from "./_shared/test_utils";
 
 const modules = import.meta.glob("./**/*.ts");
 
@@ -59,7 +59,7 @@ describe("deleteAccount", () => {
   test("deletes the user and their notes", async () => {
     const t = convexTest(schema, modules);
     const { userId, asUser } = await seedUser(t);
-    await asUser.mutation(api.notes.addNote, {
+    await asUser.mutation(api.notes.createNote, {
       title: "t",
       slug: "s",
       content: "{}",

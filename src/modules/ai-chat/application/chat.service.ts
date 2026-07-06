@@ -8,7 +8,10 @@ import type {
   AttachedNote,
   ChatMessage,
 } from "../domain/entities/chat-message";
-import { buildSystemPrompt } from "../domain/services/system-prompt.builder";
+import {
+  buildSystemPrompt,
+  type ChatMode,
+} from "../domain/services/system-prompt.builder";
 
 function toGeminiHistory(messages: ChatMessage[]): GeminiMessage[] {
   return messages
@@ -38,6 +41,7 @@ export function createChatService(repo: ChatRepositoryPort) {
         text: string;
         attachedFiles: AttachedFile[];
         attachedNote: AttachedNote | null;
+        mode?: ChatMode;
       }) => {
         const allMessages: GeminiMessage[] = [
           ...toGeminiHistory(params.history),
@@ -48,7 +52,10 @@ export function createChatService(repo: ChatRepositoryPort) {
         ];
         return send({
           messages: allMessages,
-          systemPrompt: buildSystemPrompt(params.attachedNote),
+          systemPrompt: buildSystemPrompt(
+            params.attachedNote,
+            params.mode ?? "chat",
+          ),
         });
       };
     },

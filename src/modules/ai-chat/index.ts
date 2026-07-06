@@ -7,3 +7,7 @@ export type {
 
 export { AIChatButton } from "./ui/components/AIChatButton";
 export { AIChatPanel } from "./ui/components/AIChatPanel";
+export {
+  useAIChatStore,
+  type PendingInsertion,
+} from "./infrastructure/stores/ai-chat.store";

@@ -21,3 +21,4 @@ export {
 
 export { TagChip } from "./ui/components/tag-chip";
 export { TagPicker } from "./ui/components/tag-picker";
+export { TagQuickCreate } from "./ui/components/tag-quick-create";

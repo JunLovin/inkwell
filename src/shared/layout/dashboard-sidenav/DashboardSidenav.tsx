@@ -13,8 +13,12 @@ import {
 
 import { Sidenav, type SidenavNavItem } from "../sidenav/Sidenav";
 import { useNoteCounts } from "@/modules/notes";
-import { tagSwatchClasses, useAllTags } from "@/modules/tags";
-import { folderIconClasses, useAllFolders } from "@/modules/folders";
+import { TagQuickCreate, tagSwatchClasses, useAllTags } from "@/modules/tags";
+import {
+  FolderQuickCreate,
+  folderIconClasses,
+  useAllFolders,
+} from "@/modules/folders";
 import { useAuthActions, useCurrentUser } from "@/modules/auth";
 
 function deriveActiveId(
@@ -132,6 +136,11 @@ export function DashboardSidenav() {
       user={{ name: user.name || "Unknown", email: user.email ?? "" }}
       open={mobileOpen}
       onOpenChange={setMobileOpen}
+      staticSections={["Folders", "Tags"]}
+      sectionActions={{
+        Folders: <FolderQuickCreate />,
+        Tags: <TagQuickCreate />,
+      }}
       onNavigate={(id) => {
         if (id === "dashboard") {
           router.push("/dashboard");

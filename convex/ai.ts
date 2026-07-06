@@ -1,8 +1,8 @@
 import { action } from "./_generated/server";
 import { v } from "convex/values";
-import { getAuthUserId } from "@convex-dev/auth/server";
 import { GoogleGenAI } from "@google/genai";
 import { errors } from "./_shared/errors";
+import { requireUserId } from "./model/auth";
 
 const MAX_MESSAGES = 40;
 const MAX_TEXT_LENGTH = 20_000;
@@ -29,14 +29,18 @@ function base64ByteLength(b64: string): number {
   return Math.floor((b64.length * 3) / 4) - padding;
 }
 
+function readEnv(name: string): string | undefined {
+  const value = process.env[name];
+  return value && value.length > 0 ? value : undefined;
+}
+
 export const chat = action({
   args: {
     messages: v.array(messageValidator),
     systemPrompt: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
+    await requireUserId(ctx);
 
     if (args.messages.length === 0) {
       throw errors.invalidInput("At least one message is required");
@@ -67,13 +71,13 @@ export const chat = action({
     }
 
     if (
-      process.env.NODE_ENV !== "production" &&
-      process.env.AI_TEST_MODE === "true"
+      readEnv("NODE_ENV") !== "production" &&
+      readEnv("AI_TEST_MODE") === "true"
     ) {
       return "[stub] reply";
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = readEnv("GEMINI_API_KEY");
     if (!apiKey) throw errors.aiNotConfigured();
 
     const ai = new GoogleGenAI({ apiKey });

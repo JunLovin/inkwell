@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { convexTest } from "convex-test";
 import schema from "./schema";
 import { api } from "./_generated/api";
-import { seedUser } from "./_shared/test-utils";
+import { seedUser } from "./_shared/test_utils";
 
 vi.mock("@google/genai", () => {
   class GoogleGenAI {
