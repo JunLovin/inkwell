@@ -1,9 +1,16 @@
 import { create } from "zustand";
+import type { Id } from "@/convex/_generated/dataModel";
 import type {
   AttachedFile,
   AttachedNote,
   ChatMessage,
 } from "../../domain/entities/chat-message";
+
+export type PendingInsertion = {
+  noteId: Id<"notes">;
+  markdown: string;
+  token: number;
+};
 
 type AIChatStore = {
   isOpen: boolean;
@@ -12,6 +19,7 @@ type AIChatStore = {
   attachedNote: AttachedNote | null;
   attachedFiles: AttachedFile[];
   isLoading: boolean;
+  pendingInsertion: PendingInsertion | null;
   open: () => void;
   close: () => void;
   toggle: () => void;
@@ -23,6 +31,8 @@ type AIChatStore = {
   setLoading: (loading: boolean) => void;
   clearContext: () => void;
   removeLastAssistantMessage: () => void;
+  setPendingInsertion: (payload: Omit<PendingInsertion, "token">) => void;
+  clearPendingInsertion: (token: number) => void;
 };
 
 type AIChatStateSnapshot = Pick<
@@ -33,6 +43,7 @@ type AIChatStateSnapshot = Pick<
   | "attachedNote"
   | "attachedFiles"
   | "isLoading"
+  | "pendingInsertion"
 >;
 
 export const INITIAL_AI_CHAT_STATE: AIChatStateSnapshot = {
@@ -42,7 +53,10 @@ export const INITIAL_AI_CHAT_STATE: AIChatStateSnapshot = {
   attachedNote: null,
   attachedFiles: [],
   isLoading: false,
+  pendingInsertion: null,
 };
+
+let insertionCounter = 0;
 
 export const useAIChatStore = create<AIChatStore>((set) => ({
   ...INITIAL_AI_CHAT_STATE,
@@ -103,6 +117,19 @@ export const useAIChatStore = create<AIChatStore>((set) => ({
         },
       };
     }),
+  setPendingInsertion: (payload) => {
+    insertionCounter += 1;
+    set({
+      pendingInsertion: { ...payload, token: insertionCounter },
+    });
+  },
+  clearPendingInsertion: (token) =>
+    set((state) => {
+      if (!state.pendingInsertion || state.pendingInsertion.token !== token) {
+        return {};
+      }
+      return { pendingInsertion: null };
+    }),
 }));
 
 export const resetAIChatStore = () =>
@@ -113,4 +140,5 @@ export const resetAIChatStore = () =>
     attachedNote: INITIAL_AI_CHAT_STATE.attachedNote,
     attachedFiles: [...INITIAL_AI_CHAT_STATE.attachedFiles],
     isLoading: INITIAL_AI_CHAT_STATE.isLoading,
+    pendingInsertion: INITIAL_AI_CHAT_STATE.pendingInsertion,
   });

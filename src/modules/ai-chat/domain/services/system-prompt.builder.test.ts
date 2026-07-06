@@ -23,4 +23,25 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Day 2: hike");
     expect(prompt).toContain("---");
   });
+
+  it("returns writer-mode instructions when mode is 'writer'", () => {
+    const prompt = buildSystemPrompt(
+      {
+        id: "n1",
+        title: "Story draft",
+        slug: "story-draft",
+        plainText: "Once upon a time",
+      },
+      "writer",
+    );
+    expect(prompt).toContain("WRITER mode");
+    expect(prompt).toContain("Story draft");
+    expect(prompt).toContain("Once upon a time");
+    expect(prompt).toContain("ONLY the markdown");
+  });
+
+  it("falls back to the free prompt when no note is attached even in writer mode", () => {
+    const prompt = buildSystemPrompt(null, "writer");
+    expect(prompt).not.toContain("WRITER mode");
+  });
 });

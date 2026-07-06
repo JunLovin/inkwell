@@ -85,8 +85,11 @@ export function FolderPicker({ noteId, currentFolderId }: FolderPickerProps) {
       await moveNoteToFolder(noteId, folderId);
       setOpen(false);
       setQuery("");
-    } catch {
-      toast.error({ title: "Could not move note" });
+    } catch (err) {
+      toast.error({
+        title: "Could not move note",
+        description: err instanceof Error ? err.message : undefined,
+      });
     }
   };
 
@@ -95,8 +98,11 @@ export function FolderPicker({ noteId, currentFolderId }: FolderPickerProps) {
     try {
       await removeNoteFromFolder(noteId);
       setOpen(false);
-    } catch {
-      toast.error({ title: "Could not remove folder" });
+    } catch (err) {
+      toast.error({
+        title: "Could not remove folder",
+        description: err instanceof Error ? err.message : undefined,
+      });
     }
   };
 
@@ -107,8 +113,11 @@ export function FolderPicker({ noteId, currentFolderId }: FolderPickerProps) {
       await createAndAssignFolder(noteId, trimmed, color);
       setQuery("");
       setOpen(false);
-    } catch {
-      toast.error({ title: "Could not create folder" });
+    } catch (err) {
+      toast.error({
+        title: "Could not create folder",
+        description: err instanceof Error ? err.message : undefined,
+      });
     }
   };
 

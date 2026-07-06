@@ -87,8 +87,11 @@ export function TagPicker({ noteId }: TagPickerProps) {
       } else {
         await assignTagToNote(noteId, tagId);
       }
-    } catch {
-      toast.error({ title: "Could not update tag" });
+    } catch (err) {
+      toast.error({
+        title: "Could not update tag",
+        description: err instanceof Error ? err.message : undefined,
+      });
     }
   };
 
@@ -98,8 +101,11 @@ export function TagPicker({ noteId }: TagPickerProps) {
       const color = pickColorFromName(trimmed);
       await createAndAssignTag(noteId, trimmed, color);
       setQuery("");
-    } catch {
-      toast.error({ title: "Could not create tag" });
+    } catch (err) {
+      toast.error({
+        title: "Could not create tag",
+        description: err instanceof Error ? err.message : undefined,
+      });
     }
   };
 
@@ -107,8 +113,11 @@ export function TagPicker({ noteId }: TagPickerProps) {
     if (!noteId) return;
     try {
       await unassignTagFromNote(noteId, tagId);
-    } catch {
-      toast.error({ title: "Could not remove tag" });
+    } catch (err) {
+      toast.error({
+        title: "Could not remove tag",
+        description: err instanceof Error ? err.message : undefined,
+      });
     }
   };
 

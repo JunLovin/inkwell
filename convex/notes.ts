@@ -1,55 +1,81 @@
 import { v } from "convex/values";
-import { mutation, query, type MutationCtx } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { errors } from "./_shared/errors";
 import { buildSearchableContent } from "./_shared/lexicalText";
-import type { Id } from "./_generated/dataModel";
+import { requireUserId } from "./model/auth";
+import { assertNoteOwner } from "./model/ownership";
+import { cascadeDeleteNote } from "./model/cascade";
+import {
+  findNoteBySlug,
+  listActiveNotes,
+  listArchivedNotesForAuthor,
+  listDeletedNotesForAuthor,
+  listFavoriteNotesForAuthor,
+} from "./model/notes";
 
-async function requireOwnedNote(
-  ctx: MutationCtx,
-  id: Id<"notes">,
-  userId: Id<"users">,
-) {
-  const note = await ctx.db.get("notes", id);
-  if (!note) throw errors.notFound("Note");
-  if (note.authorId !== userId) throw errors.notAuthorized();
-  return note;
-}
+const MAX_BULK_IDS = 100;
+const TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 
-export const getNotes = query({
+export const listNotes = query({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    return await ctx.db
-      .query("notes")
-      .withIndex("by_author_id", (q) => q.eq("authorId", userId))
-      .order("desc")
-      .collect();
+    const userId = await requireUserId(ctx);
+    return await listActiveNotes(ctx, userId);
   },
 });
 
-export const getNote = query({
+export const getNoteBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    const note = await ctx.db
-      .query("notes")
-      .withIndex("by_author_and_slug", (q) =>
-        q.eq("authorId", userId).eq("slug", args.slug),
-      )
-      .first();
-
-    if (!note) throw errors.notFound("Note");
-
-    return note;
+    const userId = await requireUserId(ctx);
+    return await findNoteBySlug(ctx, userId, args.slug);
   },
 });
 
-export const addNote = mutation({
+export const listArchivedNotes = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await requireUserId(ctx);
+    return await listArchivedNotesForAuthor(ctx, userId);
+  },
+});
+
+export const listDeletedNotes = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await requireUserId(ctx);
+    return await listDeletedNotesForAuthor(ctx, userId);
+  },
+});
+
+export const listFavoriteNotes = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await requireUserId(ctx);
+    return await listFavoriteNotesForAuthor(ctx, userId);
+  },
+});
+
+export const searchNotes = query({
+  args: { search: v.string() },
+  handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx);
+
+    const trimmed = args.search.trim();
+    if (!trimmed) return [];
+
+    const hits = await ctx.db
+      .query("notes")
+      .withSearchIndex("search_content", (q) =>
+        q.search("searchableContent", trimmed).eq("authorId", userId),
+      )
+      .take(50);
+
+    return hits.filter((n) => !n.isDeleted);
+  },
+});
+
+export const createNote = mutation({
   args: {
     title: v.string(),
     slug: v.string(),
@@ -57,9 +83,7 @@ export const addNote = mutation({
     preview: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
+    const userId = await requireUserId(ctx);
     const now = Date.now();
     const note = {
       authorId: userId,
@@ -75,7 +99,6 @@ export const addNote = mutation({
       createdAt: now,
       updatedAt: now,
     };
-
     const id = await ctx.db.insert("notes", note);
     return { id, ...note };
   },
@@ -89,10 +112,8 @@ export const updateNote = mutation({
     preview: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    const note = await requireOwnedNote(ctx, args.id, userId);
+    const userId = await requireUserId(ctx);
+    const note = await assertNoteOwner(ctx, args.id, userId);
 
     const nextTitle = args.title ?? note.title;
     const nextContent = args.content ?? note.content;
@@ -110,10 +131,8 @@ export const updateNote = mutation({
 export const deleteNote = mutation({
   args: { id: v.id("notes") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    await requireOwnedNote(ctx, args.id, userId);
+    const userId = await requireUserId(ctx);
+    await assertNoteOwner(ctx, args.id, userId);
     await ctx.db.patch("notes", args.id, {
       isDeleted: true,
       updatedAt: Date.now(),
@@ -121,31 +140,20 @@ export const deleteNote = mutation({
   },
 });
 
-export const hardDeleteNote = mutation({
+export const purgeNote = mutation({
   args: { id: v.id("notes") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    await requireOwnedNote(ctx, args.id, userId);
-
-    const links = await ctx.db
-      .query("noteTags")
-      .withIndex("by_note_id", (q) => q.eq("noteId", args.id))
-      .collect();
-    await Promise.all(links.map((link) => ctx.db.delete("noteTags", link._id)));
-
-    await ctx.db.delete("notes", args.id);
+    const userId = await requireUserId(ctx);
+    await assertNoteOwner(ctx, args.id, userId);
+    await cascadeDeleteNote(ctx, args.id);
   },
 });
 
 export const archiveNote = mutation({
   args: { id: v.id("notes") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    await requireOwnedNote(ctx, args.id, userId);
+    const userId = await requireUserId(ctx);
+    await assertNoteOwner(ctx, args.id, userId);
     await ctx.db.patch("notes", args.id, {
       isArchived: true,
       updatedAt: Date.now(),
@@ -153,15 +161,25 @@ export const archiveNote = mutation({
   },
 });
 
-export const markNoteAsFavorite = mutation({
+export const favoriteNote = mutation({
   args: { id: v.id("notes") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    await requireOwnedNote(ctx, args.id, userId);
+    const userId = await requireUserId(ctx);
+    await assertNoteOwner(ctx, args.id, userId);
     await ctx.db.patch("notes", args.id, {
       isFavorite: true,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+export const unfavoriteNote = mutation({
+  args: { id: v.id("notes") },
+  handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx);
+    await assertNoteOwner(ctx, args.id, userId);
+    await ctx.db.patch("notes", args.id, {
+      isFavorite: false,
       updatedAt: Date.now(),
     });
   },
@@ -170,10 +188,8 @@ export const markNoteAsFavorite = mutation({
 export const pinNote = mutation({
   args: { id: v.id("notes") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    await requireOwnedNote(ctx, args.id, userId);
+    const userId = await requireUserId(ctx);
+    await assertNoteOwner(ctx, args.id, userId);
     await ctx.db.patch("notes", args.id, {
       isPinned: true,
       updatedAt: Date.now(),
@@ -184,10 +200,8 @@ export const pinNote = mutation({
 export const unpinNote = mutation({
   args: { id: v.id("notes") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    await requireOwnedNote(ctx, args.id, userId);
+    const userId = await requireUserId(ctx);
+    await assertNoteOwner(ctx, args.id, userId);
     await ctx.db.patch("notes", args.id, {
       isPinned: false,
       updatedAt: Date.now(),
@@ -195,57 +209,11 @@ export const unpinNote = mutation({
   },
 });
 
-export const removeFavoriteNote = mutation({
-  args: { id: v.id("notes") },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    await requireOwnedNote(ctx, args.id, userId);
-    await ctx.db.patch("notes", args.id, {
-      isFavorite: false,
-      updatedAt: Date.now(),
-    });
-  },
-});
-
-export const getArchivedNotes = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    const notes = await ctx.db
-      .query("notes")
-      .withIndex("by_author_id", (q) => q.eq("authorId", userId))
-      .order("desc")
-      .collect();
-    return notes.filter((n) => n.isArchived && !n.isDeleted);
-  },
-});
-
-export const getDeletedNotes = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    const notes = await ctx.db
-      .query("notes")
-      .withIndex("by_author_id", (q) => q.eq("authorId", userId))
-      .order("desc")
-      .collect();
-    return notes.filter((n) => n.isDeleted);
-  },
-});
-
 export const restoreNote = mutation({
   args: { id: v.id("notes") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    await requireOwnedNote(ctx, args.id, userId);
+    const userId = await requireUserId(ctx);
+    await assertNoteOwner(ctx, args.id, userId);
     await ctx.db.patch("notes", args.id, {
       isArchived: false,
       isDeleted: false,
@@ -254,100 +222,71 @@ export const restoreNote = mutation({
   },
 });
 
+function assertBulkSize(ids: readonly unknown[]) {
+  if (ids.length === 0)
+    throw errors.invalidInput("At least one id is required");
+  if (ids.length > MAX_BULK_IDS)
+    throw errors.invalidInput(`Too many ids (max ${MAX_BULK_IDS} per call)`);
+}
+
 export const bulkArchiveNotes = mutation({
   args: { ids: v.array(v.id("notes")) },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
+    const userId = await requireUserId(ctx);
+    assertBulkSize(args.ids);
 
     const now = Date.now();
-    let processed = 0;
     for (const id of args.ids) {
-      const note = await ctx.db.get("notes", id);
-      if (!note || note.authorId !== userId) continue;
+      await assertNoteOwner(ctx, id, userId);
       await ctx.db.patch("notes", id, { isArchived: true, updatedAt: now });
-      processed += 1;
     }
-    return { processed, skipped: args.ids.length - processed };
+    return { processed: args.ids.length, skipped: 0 };
   },
 });
 
 export const bulkDeleteNotes = mutation({
   args: { ids: v.array(v.id("notes")) },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
+    const userId = await requireUserId(ctx);
+    assertBulkSize(args.ids);
 
     const now = Date.now();
-    let processed = 0;
     for (const id of args.ids) {
-      const note = await ctx.db.get("notes", id);
-      if (!note || note.authorId !== userId) continue;
+      await assertNoteOwner(ctx, id, userId);
       await ctx.db.patch("notes", id, { isDeleted: true, updatedAt: now });
-      processed += 1;
     }
-    return { processed, skipped: args.ids.length - processed };
+    return { processed: args.ids.length, skipped: 0 };
   },
 });
 
-export const bulkHardDeleteNotes = mutation({
+export const bulkPurgeNotes = mutation({
   args: { ids: v.array(v.id("notes")) },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
+    const userId = await requireUserId(ctx);
+    assertBulkSize(args.ids);
 
-    let processed = 0;
     for (const id of args.ids) {
-      const note = await ctx.db.get("notes", id);
-      if (!note || note.authorId !== userId) continue;
-
-      const links = await ctx.db
-        .query("noteTags")
-        .withIndex("by_note_id", (q) => q.eq("noteId", id))
-        .collect();
-      await Promise.all(
-        links.map((link) => ctx.db.delete("noteTags", link._id)),
-      );
-
-      await ctx.db.delete("notes", id);
-      processed += 1;
+      await assertNoteOwner(ctx, id, userId);
+      await cascadeDeleteNote(ctx, id);
     }
-    return { processed, skipped: args.ids.length - processed };
+    return { processed: args.ids.length, skipped: 0 };
   },
 });
 
-export const searchNotes = query({
-  args: { search: v.string() },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    const trimmed = args.search.trim();
-    if (!trimmed) return [];
-
-    return await ctx.db
-      .query("notes")
-      .withSearchIndex("search_content", (q) =>
-        q
-          .search("searchableContent", trimmed)
-          .eq("authorId", userId)
-          .eq("isDeleted", false),
-      )
-      .take(50);
-  },
-});
-
-export const getFavoriteNotes = query({
+export const purgeOldTrash = internalMutation({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw errors.notAuthenticated();
-
-    const notes = await ctx.db
+    const cutoff = Date.now() - TRASH_RETENTION_MS;
+    const stale = await ctx.db
       .query("notes")
-      .withIndex("by_author_id", (q) => q.eq("authorId", userId))
-      .order("desc")
-      .collect();
-    return notes.filter((n) => n.isFavorite && !n.isDeleted);
+      .withIndex("by_deleted_and_updated", (q) =>
+        q.eq("isDeleted", true).lt("updatedAt", cutoff),
+      )
+      .take(200);
+
+    for (const note of stale) {
+      await cascadeDeleteNote(ctx, note._id);
+    }
+    return { purged: stale.length };
   },
 });

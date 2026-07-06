@@ -32,6 +32,8 @@ type SidenavProps = {
   onLogout?: () => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  sectionActions?: Record<string, React.ReactNode>;
+  staticSections?: string[];
 };
 
 const COLLAPSED_W = 72;
@@ -46,6 +48,8 @@ export function Sidenav({
   onLogout,
   open,
   onOpenChange,
+  sectionActions,
+  staticSections,
 }: SidenavProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(open ?? false);
@@ -114,6 +118,10 @@ export function Sidenav({
     acc[key].push(item);
     return acc;
   }, {});
+
+  for (const key of staticSections ?? []) {
+    if (!sections[key]) sections[key] = [];
+  }
 
   const sectionKeys = Object.keys(sections);
 
@@ -186,6 +194,7 @@ export function Sidenav({
               key={key}
               label={key === "__default" ? undefined : key}
               collapsed={collapsed}
+              trailing={key === "__default" ? undefined : sectionActions?.[key]}
             >
               {sections[key].map((item) => (
                 <SidenavItem

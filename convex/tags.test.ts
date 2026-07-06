@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { convexTest } from "convex-test";
 import schema from "./schema";
 import { api } from "./_generated/api";
-import { seedUser } from "./_shared/test-utils";
+import { seedUser } from "./_shared/test_utils";
 
 const modules = import.meta.glob("./**/*.ts");
 
@@ -59,13 +59,13 @@ describe("deleteTag", () => {
     const { asUser } = await seedUser(t);
     await asUser.mutation(api.tags.createTag, { name: "t", color: "r" });
     const [tag] = await asUser.query(api.tags.listTags, {});
-    await asUser.mutation(api.notes.addNote, {
+    await asUser.mutation(api.notes.createNote, {
       title: "t",
       slug: "s",
       content: "{}",
       preview: "",
     });
-    const [note] = await asUser.query(api.notes.getNotes, {});
+    const [note] = await asUser.query(api.notes.listNotes, {});
     await asUser.mutation(api.tags.assignTagToNote, {
       noteId: note._id,
       tagId: tag._id,
@@ -84,13 +84,13 @@ describe("assignTagToNote / unassignTagFromNote", () => {
     const { asUser } = await seedUser(t);
     await asUser.mutation(api.tags.createTag, { name: "t", color: "r" });
     const [tag] = await asUser.query(api.tags.listTags, {});
-    await asUser.mutation(api.notes.addNote, {
+    await asUser.mutation(api.notes.createNote, {
       title: "t",
       slug: "s",
       content: "{}",
       preview: "",
     });
-    const [note] = await asUser.query(api.notes.getNotes, {});
+    const [note] = await asUser.query(api.notes.listNotes, {});
     await asUser.mutation(api.tags.assignTagToNote, {
       noteId: note._id,
       tagId: tag._id,
@@ -109,13 +109,13 @@ describe("assignTagToNote / unassignTagFromNote", () => {
     const { asUser } = await seedUser(t);
     await asUser.mutation(api.tags.createTag, { name: "t", color: "r" });
     const [tag] = await asUser.query(api.tags.listTags, {});
-    await asUser.mutation(api.notes.addNote, {
+    await asUser.mutation(api.notes.createNote, {
       title: "t",
       slug: "s",
       content: "{}",
       preview: "",
     });
-    const [note] = await asUser.query(api.notes.getNotes, {});
+    const [note] = await asUser.query(api.notes.listNotes, {});
     await asUser.mutation(api.tags.assignTagToNote, {
       noteId: note._id,
       tagId: tag._id,
@@ -135,13 +135,13 @@ describe("assignTagToNote / unassignTagFromNote", () => {
     const { asUser: b } = await seedUser(t, "b");
     await a.mutation(api.tags.createTag, { name: "t", color: "r" });
     const [aTag] = await a.query(api.tags.listTags, {});
-    await b.mutation(api.notes.addNote, {
+    await b.mutation(api.notes.createNote, {
       title: "x",
       slug: "s",
       content: "{}",
       preview: "",
     });
-    const [bNote] = await b.query(api.notes.getNotes, {});
+    const [bNote] = await b.query(api.notes.listNotes, {});
     await expect(
       b.mutation(api.tags.assignTagToNote, {
         noteId: bNote._id,
@@ -157,13 +157,13 @@ describe("listTagsForNote", () => {
     const { asUser } = await seedUser(t);
     await asUser.mutation(api.tags.createTag, { name: "t", color: "r" });
     const [tag] = await asUser.query(api.tags.listTags, {});
-    await asUser.mutation(api.notes.addNote, {
+    await asUser.mutation(api.notes.createNote, {
       title: "t",
       slug: "s",
       content: "{}",
       preview: "",
     });
-    const [note] = await asUser.query(api.notes.getNotes, {});
+    const [note] = await asUser.query(api.notes.listNotes, {});
     await asUser.mutation(api.tags.assignTagToNote, {
       noteId: note._id,
       tagId: tag._id,

@@ -22,6 +22,11 @@ const schema = defineSchema({
     .index("by_author_id", ["authorId"])
     .index("by_author_and_slug", ["authorId", "slug"])
     .index("by_author_and_folder", ["authorId", "folderId"])
+    .index("by_author_and_deleted", ["authorId", "isDeleted"])
+    .index("by_author_and_archived", ["authorId", "isArchived"])
+    .index("by_author_and_favorite", ["authorId", "isFavorite"])
+    .index("by_author_and_pinned", ["authorId", "isPinned"])
+    .index("by_deleted_and_updated", ["isDeleted", "updatedAt"])
     .searchIndex("search_content", {
       searchField: "searchableContent",
       filterFields: ["authorId", "isDeleted", "isArchived", "folderId"],

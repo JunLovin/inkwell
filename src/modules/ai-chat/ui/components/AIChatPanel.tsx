@@ -5,6 +5,7 @@ import { usePathname, useParams } from "next/navigation";
 import { Eraser, Sparkles, X } from "lucide-react";
 import gsap from "gsap";
 
+import type { Id } from "@/convex/_generated/dataModel";
 import { Tooltip } from "@/shared/ui/tooltip";
 import { useNote } from "@/modules/notes";
 import { extractTextFromLexicalJSON } from "@/lib/lexical";
@@ -16,6 +17,7 @@ import {
   noteContextId,
 } from "../../domain/entities/chat-context";
 import { getSuggestions } from "../../domain/services/prompt-suggestions";
+import { isWriterIntent } from "../../domain/services/writer-intent";
 import type { ChatMessage } from "../../domain/entities/chat-message";
 
 import { AIChatMessage } from "./AIChatMessage";
@@ -43,6 +45,7 @@ export function AIChatPanel() {
     setContext,
     clearContext,
     removeLastAssistantMessage,
+    setPendingInsertion,
   } = useAIChatStore();
 
   const noteSlug =
@@ -121,14 +124,27 @@ export function AIChatPanel() {
   const runPrompt = useCallback(
     async (text: string, history: ChatMessage[]) => {
       setLoading(true);
+      const writerMode = isWriterIntent(text) && !!attachedNote?.id;
       try {
         const response = await sendMessage({
           history,
           text,
           attachedFiles,
           attachedNote,
+          mode: writerMode ? "writer" : "chat",
         });
-        addMessage({ role: "assistant", content: response });
+        if (writerMode && attachedNote?.id) {
+          setPendingInsertion({
+            noteId: attachedNote.id as Id<"notes">,
+            markdown: response,
+          });
+          addMessage({
+            role: "assistant",
+            content: "Inserted into your note.",
+          });
+        } else {
+          addMessage({ role: "assistant", content: response });
+        }
       } catch {
         addMessage({
           role: "assistant",
@@ -138,7 +154,14 @@ export function AIChatPanel() {
         setLoading(false);
       }
     },
-    [sendMessage, attachedFiles, attachedNote, addMessage, setLoading],
+    [
+      sendMessage,
+      attachedFiles,
+      attachedNote,
+      addMessage,
+      setLoading,
+      setPendingInsertion,
+    ],
   );
 
   const handleSubmit = async (text: string) => {
