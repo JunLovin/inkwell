@@ -179,7 +179,7 @@ export function NoteDetailPage({ slug }: Props) {
             <button
               type="button"
               onClick={() => router.back()}
-              className="w-8 h-8 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors shrink-0"
+              className="w-11 h-11 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors shrink-0"
             >
               <ArrowLeft size={16} />
             </button>
@@ -202,7 +202,7 @@ export function NoteDetailPage({ slug }: Props) {
             <button
               type="button"
               onClick={handleFavorite}
-              className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors ${
+              className={`w-11 h-11 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl transition-colors ${
                 note.isFavorite
                   ? "text-amber-400 hover:bg-amber-500/10"
                   : "text-zinc-500 hover:text-amber-400 hover:bg-amber-500/10"
@@ -218,7 +218,7 @@ export function NoteDetailPage({ slug }: Props) {
             <button
               type="button"
               onClick={handleArchive}
-              className="w-8 h-8 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+              className="w-11 h-11 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
             >
               <Archive size={15} />
             </button>
@@ -227,7 +227,7 @@ export function NoteDetailPage({ slug }: Props) {
             <button
               type="button"
               onClick={handleDelete}
-              className="w-8 h-8 flex items-center justify-center rounded-xl text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+              className="w-11 h-11 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
             >
               <Trash2 size={15} />
             </button>
@@ -242,7 +242,7 @@ export function NoteDetailPage({ slug }: Props) {
         >
           <div
             ref={contentAreaRef}
-            className="max-w-[720px] mx-auto px-8 pt-14 pb-40"
+            className="max-w-[720px] mx-auto px-4 sm:px-8 pt-14 pb-40"
           >
             <textarea
               ref={titleRef}
@@ -256,8 +256,8 @@ export function NoteDetailPage({ slug }: Props) {
 
             {note.updatedAt && (
               <div className="flex items-center gap-1.5 mb-4">
-                <Clock size={11} className="text-zinc-700 shrink-0" />
-                <span className="text-xs text-zinc-700">
+                <Clock size={11} className="text-zinc-400 shrink-0" />
+                <span className="text-xs text-zinc-400">
                   Last edited {timeAgo(new Date(note.updatedAt))}
                 </span>
               </div>

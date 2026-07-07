@@ -65,7 +65,8 @@ export const convexNoteRepository: NoteRepositoryPort = {
 
     return {
       create: async (input) => {
-        await createMutation(input);
+        const result = await createMutation(input);
+        return { id: result.id, slug: input.slug };
       },
       update: async ({ id, ...patch }) => {
         await updateMutation({ id, ...patch });

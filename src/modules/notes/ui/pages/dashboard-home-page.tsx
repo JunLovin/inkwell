@@ -14,7 +14,7 @@ import {
   Feather,
 } from "lucide-react";
 
-import { Card, IconBox, Button, Loader } from "@/shared/ui";
+import { Card, IconBox, Button, Loader, focusRingZinc } from "@/shared/ui";
 import { useCurrentUser } from "@/modules/auth";
 import { NoteCard } from "../components/note-card";
 import {
@@ -169,7 +169,7 @@ export function DashboardHomePage() {
             <div className="p-5 flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <IconBox icon={stat.icon} variant={stat.variant} size="sm" />
-                <span className="text-zinc-700 text-[10px] tracking-wide uppercase">
+                <span className="text-zinc-500 text-[10px] tracking-wide uppercase">
                   {stat.description}
                 </span>
               </div>
@@ -203,7 +203,7 @@ export function DashboardHomePage() {
           <button
             type="button"
             onClick={() => router.push("/dashboard/notes")}
-            className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-300 transition-colors duration-200"
+            className={`flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-300 transition-colors duration-200 cursor-pointer rounded ${focusRingZinc}`}
           >
             View all
             <ArrowRight size={11} />
@@ -222,7 +222,7 @@ export function DashboardHomePage() {
                 <p className="text-zinc-400 text-sm font-medium">
                   No notes yet
                 </p>
-                <p className="text-zinc-700 text-xs mt-1">
+                <p className="text-zinc-500 text-xs mt-1">
                   Create your first note to get started
                 </p>
               </div>

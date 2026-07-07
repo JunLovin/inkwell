@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { Eye, EyeOff, ArrowRight, ShieldAlert } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -32,8 +31,7 @@ export function AccountSection() {
   const onSubmit = async (_data: ChangePasswordSchema) => {
     toast.default({
       title: "Password change is rolling out",
-      description:
-        "For now, use \"Forgot password\" from the sign-in screen to set a new one.",
+      description: "This feature will ship in a future update.",
     });
     reset();
   };
@@ -53,14 +51,7 @@ export function AccountSection() {
         <div className="flex items-start gap-3 p-3 rounded-2xl bg-amber-500/5 border border-amber-500/20">
           <ShieldAlert size={14} className="text-amber-400 mt-0.5 shrink-0" />
           <div className="text-xs text-amber-200/80 leading-relaxed">
-            In-app password change is rolling out. For now, use{" "}
-            <Link
-              href="/forgot-password"
-              className="text-amber-300 underline underline-offset-4 decoration-amber-700/60 hover:decoration-amber-400"
-            >
-              Forgot password
-            </Link>{" "}
-            from the sign-in screen.
+            In-app password change is rolling out in a future update.
           </div>
         </div>
 

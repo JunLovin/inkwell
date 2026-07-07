@@ -17,7 +17,7 @@ type DrawerProps = {
   expandLabel?: string;
   actions?: ReactNode;
   children?: ReactNode;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl";
 };
 
 const sizeStyles = {
@@ -25,6 +25,7 @@ const sizeStyles = {
   md: "max-w-md",
   lg: "max-w-lg",
   xl: "max-w-xl",
+  "2xl": "max-w-2xl",
 };
 
 export function Drawer({

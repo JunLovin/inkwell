@@ -3,6 +3,7 @@
 import { forwardRef } from "react";
 import { X } from "lucide-react";
 
+import { focusRingZinc } from "@/shared/ui";
 import { tagColorClasses } from "../../../domain/services/tag-color";
 
 type Size = "sm" | "md";
@@ -43,40 +44,47 @@ export const TagChip = forwardRef<HTMLButtonElement, TagChipProps>(
         ? "hover:ring-1 hover:ring-zinc-700"
         : "";
 
-    return (
-      <button
-        ref={ref}
-        type="button"
-        onClick={onClick}
-        disabled={!interactive && !onRemove}
-        className={`inline-flex items-center rounded-md border ${sizeStyles[size]} ${colorClass} ${ringClass} transition-all ${interactive ? "cursor-pointer" : "cursor-default"} disabled:cursor-default ${className}`}
-      >
-        <span className="font-medium tracking-tight leading-none truncate max-w-[120px]">
-          {name}
-        </span>
-        {onRemove && (
-          <span
-            role="button"
-            tabIndex={0}
+    const baseClasses = `inline-flex items-center rounded-md border ${sizeStyles[size]} ${colorClass} ${ringClass} transition-all ${className}`;
+
+    const label = (
+      <span className="font-medium tracking-tight leading-none truncate max-w-[120px]">
+        {name}
+      </span>
+    );
+
+    if (onRemove) {
+      return (
+        <span className={`${baseClasses} cursor-default`}>
+          {label}
+          <button
+            type="button"
             aria-label={`Remove ${name}`}
             onClick={(e) => {
               e.stopPropagation();
               onRemove();
             }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                e.stopPropagation();
-                onRemove();
-              }
-            }}
-            className="opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+            className={`opacity-60 hover:opacity-100 transition-opacity cursor-pointer rounded-sm ${focusRingZinc}`}
           >
             <X className="w-3 h-3" />
-          </span>
-        )}
-      </button>
-    );
+          </button>
+        </span>
+      );
+    }
+
+    if (interactive) {
+      return (
+        <button
+          ref={ref}
+          type="button"
+          onClick={onClick}
+          className={`${baseClasses} cursor-pointer ${focusRingZinc}`}
+        >
+          {label}
+        </button>
+      );
+    }
+
+    return <span className={`${baseClasses} cursor-default`}>{label}</span>;
   },
 );
 

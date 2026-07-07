@@ -1,1 +1,1 @@
-export { NoteEditor } from "./NoteEditor";
+export { InsertAIContentPlugin } from "./InsertAIContentPlugin";

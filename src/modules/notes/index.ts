@@ -20,7 +20,6 @@ export { useNoteActions } from "./infrastructure/hooks/use-note-actions";
 export { useAutoSaveNote } from "./infrastructure/hooks/use-autosave-note";
 
 export { NoteCard } from "./ui/components/note-card";
-export { NoteEditor } from "./ui/components/note-editor";
 export { NoteDrawer } from "./ui/components/note-drawer";
 export { NotesGrid } from "./ui/components/notes-grid";
 

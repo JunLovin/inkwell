@@ -10,6 +10,7 @@ import { Dialog } from "@/shared/ui/dialog";
 import { NotesGrid } from "../components/notes-grid";
 import { useDeletedNotes } from "../../infrastructure/hooks/use-notes";
 import { useNoteActions } from "../../infrastructure/hooks/use-note-actions";
+import type { Note, NoteId } from "../../domain/entities/note";
 import type { SortOrder } from "../../domain/services/note-filter";
 
 export function TrashPage() {
@@ -19,6 +20,11 @@ export function TrashPage() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [emptyOpen, setEmptyOpen] = useState(false);
   const [emptying, setEmptying] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: NoteId;
+    title: string;
+  } | null>(null);
+  const [deletingSingle, setDeletingSingle] = useState(false);
 
   const headerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -142,7 +148,7 @@ export function TrashPage() {
               <p className="text-zinc-500 text-sm">
                 No results for &ldquo;{search}&rdquo;
               </p>
-              <p className="text-zinc-700 text-xs mt-1">
+              <p className="text-zinc-500 text-xs mt-1">
                 Try a different search term
               </p>
             </div>
@@ -156,7 +162,7 @@ export function TrashPage() {
               <p className="text-zinc-400 text-sm font-medium">
                 Trash is empty
               </p>
-              <p className="text-zinc-700 text-xs mt-1">
+              <p className="text-zinc-500 text-xs mt-1">
                 Deleted notes appear here until permanently removed
               </p>
             </div>
@@ -179,13 +185,11 @@ export function TrashPage() {
                   toast.error({ title: "Failed to restore note" });
                 }
               }}
-              onDelete={async (note) => {
-                try {
-                  await hardDeleteNote(note._id);
-                  toast.success({ title: "Note permanently deleted" });
-                } catch {
-                  toast.error({ title: "Failed to delete note" });
-                }
+              onDelete={(note: Note) => {
+                setPendingDelete({
+                  id: note._id,
+                  title: note.title || "Untitled",
+                });
               }}
             />
           </div>
@@ -213,6 +217,47 @@ export function TrashPage() {
             variant: "danger",
             loading: emptying,
             onClick: handleEmptyTrash,
+          },
+        ]}
+      />
+
+      <Dialog
+        open={pendingDelete !== null}
+        onClose={() => {
+          if (!deletingSingle) setPendingDelete(null);
+        }}
+        title="Delete this note?"
+        description={
+          pendingDelete
+            ? `“${pendingDelete.title}” will be permanently deleted. This cannot be undone.`
+            : ""
+        }
+        size="md"
+        actions={[
+          {
+            label: "Cancel",
+            variant: "ghost",
+            onClick: () => {
+              if (!deletingSingle) setPendingDelete(null);
+            },
+          },
+          {
+            label: "Permanently delete",
+            variant: "danger",
+            loading: deletingSingle,
+            onClick: async () => {
+              if (!pendingDelete) return;
+              try {
+                setDeletingSingle(true);
+                await hardDeleteNote(pendingDelete.id);
+                toast.success({ title: "Note permanently deleted" });
+              } catch {
+                toast.error({ title: "Failed to delete note" });
+              } finally {
+                setDeletingSingle(false);
+                setPendingDelete(null);
+              }
+            },
           },
         ]}
       />

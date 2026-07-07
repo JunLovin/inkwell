@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import { Sparkles } from "lucide-react";
 import gsap from "gsap";
+
+import { focusRingEmeraldOffset } from "@/shared/ui";
 import { useAIChatStore } from "../../infrastructure/stores/ai-chat.store";
 
 export function AIChatButton() {
@@ -30,7 +32,8 @@ export function AIChatButton() {
   return (
     <button
       onClick={toggle}
-      className={`fixed bottom-6 right-6 z-[150] w-12 h-12 flex items-center justify-center rounded-2xl border transition-colors shadow-lg shadow-black/40 ${
+      aria-label={isOpen ? "Close AI chat" : "Open AI chat"}
+      className={`fixed bottom-6 right-6 z-[150] w-12 h-12 flex items-center justify-center rounded-2xl border transition-colors shadow-lg shadow-black/40 cursor-pointer ${focusRingEmeraldOffset} ${
         isOpen
           ? "bg-zinc-800 border-zinc-700 text-emerald-400"
           : "bg-zinc-900 border-zinc-800 text-emerald-400 hover:bg-zinc-800 hover:border-zinc-700"

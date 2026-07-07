@@ -1,13 +1,10 @@
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { focusRingZinc } from "../focus-styles";
+
 export type ChipVariant =
-  | "default"
-  | "active"
-  | "success"
-  | "warning"
-  | "danger"
-  | "info";
+  "default" | "active" | "success" | "warning" | "danger" | "info";
 
 type ChipProps = {
   children: ReactNode;
@@ -60,7 +57,8 @@ export function Chip({
             e.stopPropagation();
             onRemove?.();
           }}
-          className="shrink-0 ml-0.5 text-current opacity-50 hover:opacity-100 transition-opacity duration-150 cursor-pointer"
+          aria-label="Remove"
+          className={`shrink-0 ml-0.5 text-current opacity-50 hover:opacity-100 transition-opacity duration-150 cursor-pointer rounded-sm ${focusRingZinc}`}
         >
           <X size={10} />
         </button>

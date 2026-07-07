@@ -34,17 +34,6 @@ export const convexAuthRepository: AuthRepositoryPort = {
       signOut: async () => {
         await signOut();
       },
-      requestPasswordReset: async (email) => {
-        await signIn("password", { email, flow: "reset" });
-      },
-      confirmPasswordReset: async ({ email, code, newPassword }) => {
-        await signIn("password", {
-          email,
-          code,
-          newPassword,
-          flow: "reset-verification",
-        });
-      },
       updateProfile: async (name) => {
         await updateProfileMutation({ name });
       },

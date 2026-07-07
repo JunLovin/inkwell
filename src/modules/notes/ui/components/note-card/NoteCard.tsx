@@ -11,6 +11,7 @@ import {
   Folder as FolderIcon,
 } from "lucide-react";
 import { Tooltip } from "@/shared/ui/tooltip";
+import { focusRingZinc } from "@/shared/ui";
 import { TagChip, type Tag } from "@/modules/tags";
 import { folderBadgeClasses, type Folder } from "@/modules/folders";
 import type { Note } from "../../../domain/entities/note";
@@ -158,7 +159,7 @@ export function NoteCard({
                       onPin();
                     }}
                     aria-label={isPinned ? "Unpin note" : "Pin note"}
-                    className={`w-6 h-6 flex items-center justify-center rounded-lg transition-colors ${
+                    className={`w-11 h-11 sm:w-6 sm:h-6 flex items-center justify-center rounded-lg transition-colors ${
                       isPinned
                         ? "text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
                         : "text-zinc-600 hover:text-emerald-400 hover:bg-emerald-500/10"
@@ -184,7 +185,10 @@ export function NoteCard({
                       e.stopPropagation();
                       onFavorite();
                     }}
-                    className={`w-6 h-6 flex items-center justify-center rounded-lg transition-colors ${
+                    aria-label={
+                      isFavorite ? "Remove from favorites" : "Add to favorites"
+                    }
+                    className={`w-11 h-11 sm:w-6 sm:h-6 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${focusRingZinc} ${
                       isFavorite
                         ? "text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
                         : "text-zinc-600 hover:text-amber-400 hover:bg-amber-500/10"
@@ -205,7 +209,8 @@ export function NoteCard({
                       e.stopPropagation();
                       onArchive();
                     }}
-                    className="w-6 h-6 flex items-center justify-center rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-zinc-700/60 transition-colors"
+                    aria-label="Archive note"
+                    className="w-11 h-11 sm:w-6 sm:h-6 flex items-center justify-center rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-zinc-700/60 transition-colors cursor-pointer ${focusRingZinc}"
                   >
                     <Archive className="w-3.5 h-3.5" />
                   </button>
@@ -219,7 +224,8 @@ export function NoteCard({
                       e.stopPropagation();
                       onRestore();
                     }}
-                    className="w-6 h-6 flex items-center justify-center rounded-lg text-zinc-600 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
+                    aria-label="Restore note"
+                    className="w-11 h-11 sm:w-6 sm:h-6 flex items-center justify-center rounded-lg text-zinc-600 hover:text-blue-400 hover:bg-blue-500/10 transition-colors cursor-pointer ${focusRingZinc}"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                   </button>
@@ -233,7 +239,8 @@ export function NoteCard({
                       e.stopPropagation();
                       onDelete();
                     }}
-                    className="w-6 h-6 flex items-center justify-center rounded-lg text-zinc-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                    aria-label="Delete note"
+                    className="w-11 h-11 sm:w-6 sm:h-6 flex items-center justify-center rounded-lg text-zinc-600 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer ${focusRingZinc}"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

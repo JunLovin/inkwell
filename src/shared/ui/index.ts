@@ -17,3 +17,8 @@ export { List } from "./list/List";
 export { Tooltip } from "./tooltip";
 export { Dialog } from "./dialog";
 export { Field } from "./field";
+export {
+  focusRingZinc,
+  focusRingZincOffset,
+  focusRingEmeraldOffset,
+} from "./focus-styles";
