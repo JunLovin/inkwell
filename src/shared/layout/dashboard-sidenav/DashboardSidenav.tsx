@@ -13,7 +13,6 @@ import {
 
 import { Sidenav, type SidenavNavItem } from "../sidenav/Sidenav";
 import { useNoteCounts } from "@/modules/notes";
-import { TagQuickCreate, tagSwatchClasses, useAllTags } from "@/modules/tags";
 import {
   FolderQuickCreate,
   folderIconClasses,
@@ -63,7 +62,6 @@ export function DashboardSidenav() {
 
   const { user, isLoading: userLoading } = useCurrentUser();
   const counts = useNoteCounts();
-  const { tags } = useAllTags();
   const { folders } = useAllFolders();
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -117,16 +115,6 @@ export function DashboardSidenav() {
       ),
       section: "Folders",
     })),
-    ...(tags ?? []).map<SidenavNavItem>((tag) => ({
-      id: `tag:${tag._id}`,
-      label: tag.name,
-      icon: (
-        <span
-          className={`w-2 h-2 rounded-full ${tagSwatchClasses(tag.color)}`}
-        />
-      ),
-      section: "Tags",
-    })),
   ];
 
   return (
@@ -136,19 +124,13 @@ export function DashboardSidenav() {
       user={{ name: user.name || "Unknown", email: user.email ?? "" }}
       open={mobileOpen}
       onOpenChange={setMobileOpen}
-      staticSections={["Folders", "Tags"]}
+      staticSections={["Folders"]}
       sectionActions={{
         Folders: <FolderQuickCreate />,
-        Tags: <TagQuickCreate />,
       }}
       onNavigate={(id) => {
         if (id === "dashboard") {
           router.push("/dashboard");
-          return;
-        }
-        if (id.startsWith("tag:")) {
-          const tagId = id.slice("tag:".length);
-          router.push(`/dashboard/notes?tag=${tagId}`);
           return;
         }
         if (id.startsWith("folder:")) {

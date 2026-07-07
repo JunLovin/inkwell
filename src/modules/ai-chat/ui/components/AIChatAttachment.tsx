@@ -2,6 +2,8 @@
 
 import { FileText, X, Paperclip } from "lucide-react";
 import { useRouter } from "next/navigation";
+
+import { focusRingZinc } from "@/shared/ui";
 import { useAIChatStore } from "../../infrastructure/stores/ai-chat.store";
 
 export function AIChatAttachment() {
@@ -18,16 +20,17 @@ export function AIChatAttachment() {
         <div className="flex items-center gap-1.5 bg-zinc-800/70 border border-zinc-700/60 rounded-xl px-2.5 py-1.5 max-w-full">
           <FileText className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
           <button
-            onClick={() =>
-              router.push(`/dashboard/notes/${attachedNote.slug}`)
-            }
-            className="text-xs text-zinc-300 hover:text-white transition-colors truncate max-w-[160px]"
+            type="button"
+            onClick={() => router.push(`/dashboard/notes/${attachedNote.slug}`)}
+            className={`text-xs text-zinc-300 hover:text-white transition-colors truncate max-w-[160px] cursor-pointer rounded ${focusRingZinc}`}
           >
             {attachedNote.title}
           </button>
           <button
+            type="button"
             onClick={() => setAttachedNote(null)}
-            className="text-zinc-500 hover:text-zinc-300 transition-colors shrink-0 ml-0.5"
+            aria-label={`Remove ${attachedNote.title} attachment`}
+            className={`text-zinc-500 hover:text-zinc-300 transition-colors shrink-0 ml-0.5 cursor-pointer rounded ${focusRingZinc}`}
           >
             <X className="w-3 h-3" />
           </button>
@@ -43,8 +46,10 @@ export function AIChatAttachment() {
             {file.name}
           </span>
           <button
+            type="button"
             onClick={() => removeAttachedFile(file.id)}
-            className="text-zinc-500 hover:text-zinc-300 transition-colors shrink-0 ml-0.5"
+            aria-label={`Remove ${file.name}`}
+            className={`text-zinc-500 hover:text-zinc-300 transition-colors shrink-0 ml-0.5 cursor-pointer rounded ${focusRingZinc}`}
           >
             <X className="w-3 h-3" />
           </button>

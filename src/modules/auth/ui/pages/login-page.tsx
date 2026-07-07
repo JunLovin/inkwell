@@ -129,18 +129,7 @@ export function LoginPage() {
           />
         </Field>
 
-        <Field
-          label="Password"
-          error={errors.password?.message}
-          action={
-            <Link
-              href="/forgot-password"
-              className="text-zinc-600 hover:text-zinc-400 text-xs transition-colors duration-200"
-            >
-              Forgot?
-            </Link>
-          }
-        >
+        <Field label="Password" error={errors.password?.message}>
           <div className="relative">
             <Input
               {...register("password")}

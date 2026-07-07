@@ -2,6 +2,8 @@ import { Loader2 } from "lucide-react";
 import { forwardRef } from "react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
+import { focusRingZincOffset } from "../focus-styles";
+
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
 
@@ -56,6 +58,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           relative inline-flex items-center justify-center font-medium
           transition-all duration-200 cursor-pointer
           disabled:cursor-not-allowed select-none shrink-0
+          ${focusRingZincOffset}
           ${variantStyles[variant]}
           ${sizeStyles[size]}
           ${className}

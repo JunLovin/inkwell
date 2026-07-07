@@ -27,20 +27,6 @@ function wrapErrors(mutations: AuthMutations): AuthMutations {
         throw toAppError(err);
       }
     },
-    requestPasswordReset: async (email) => {
-      try {
-        return await mutations.requestPasswordReset(email);
-      } catch (err) {
-        throw toAppError(err);
-      }
-    },
-    confirmPasswordReset: async (payload) => {
-      try {
-        return await mutations.confirmPasswordReset(payload);
-      } catch (err) {
-        throw toAppError(err);
-      }
-    },
     updateProfile: async (name) => {
       try {
         return await mutations.updateProfile(name);

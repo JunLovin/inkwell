@@ -11,12 +11,6 @@ export type SignUpPayload = {
   name: string;
 };
 
-export type ResetVerifyPayload = {
-  email: string;
-  code: string;
-  newPassword: string;
-};
-
 export type AuthSession = {
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -26,8 +20,6 @@ export type AuthMutations = {
   signIn: (payload: SignInPayload) => Promise<void>;
   signUp: (payload: SignUpPayload) => Promise<void>;
   signOut: () => Promise<void>;
-  requestPasswordReset: (email: string) => Promise<void>;
-  confirmPasswordReset: (payload: ResetVerifyPayload) => Promise<void>;
   updateProfile: (name: string) => Promise<void>;
   deleteAccount: () => Promise<void>;
 };

@@ -7,6 +7,7 @@ import gsap from "gsap";
 import type { ReactNode } from "react";
 
 import { usePortalMounted } from "@/shared/hooks/use-portal-mounted";
+import { focusRingZinc } from "../focus-styles";
 
 export type DropdownItem = {
   id: string;
@@ -24,6 +25,7 @@ type DropdownProps = {
   onSelect?: (id: string) => void;
   align?: "left" | "right";
   width?: number;
+  closeOnSelect?: boolean;
 };
 
 type Coords = { top: number; left: number; width: number };
@@ -34,6 +36,7 @@ export function Dropdown({
   onSelect,
   align = "left",
   width = 200,
+  closeOnSelect = true,
 }: DropdownProps) {
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState<Coords>({ top: 0, left: 0, width });
@@ -126,14 +129,14 @@ export function Dropdown({
                   type="button"
                   disabled={item.disabled}
                   onClick={() => {
-                    if (!item.disabled) {
-                      onSelect?.(item.id);
-                      setOpen(false);
-                    }
+                    if (item.disabled) return;
+                    onSelect?.(item.id);
+                    if (closeOnSelect) setOpen(false);
                   }}
                   className={`
                     w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs
                     transition-all duration-150 cursor-pointer text-left
+                    ${focusRingZinc}
                     disabled:opacity-40 disabled:cursor-not-allowed
                     ${
                       item.variant === "danger"

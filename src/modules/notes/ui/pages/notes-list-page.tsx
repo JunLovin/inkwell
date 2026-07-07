@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Archive,
@@ -10,16 +10,16 @@ import {
   Search,
   SortAsc,
   SortDesc,
+  Tag as TagIcon,
   Trash2,
   X as XIcon,
 } from "lucide-react";
 
 import { useToast } from "@/shared/hooks/use-toast";
-import { Button, Divider, Input, Loader } from "@/shared/ui";
-import { Dialog } from "@/shared/ui/dialog";
+import { useKeyboardShortcut } from "@/shared/hooks/use-keyboard-shortcut";
+import { Button, Divider, Input, Loader, focusRingZinc } from "@/shared/ui";
+import { Dropdown, DropdownTrigger } from "@/shared/ui/dropdown";
 
-import { NoteEditor } from "../components/note-editor";
-import type { SaveStatus } from "../../domain/services/editor-constants";
 import { NoteDrawer } from "../components/note-drawer";
 import { NotesGrid } from "../components/notes-grid";
 import {
@@ -35,14 +35,14 @@ import {
 import {
   buildNoteTagsIndex,
   noteMatchesAllTags,
-  TagChip,
+  tagSwatchClasses,
   useAllNoteTagLinks,
   useAllTags,
   type Tag,
   type TagId,
 } from "@/modules/tags";
 import {
-  folderBadgeClasses,
+  folderIconClasses,
   useAllFolders,
   type Folder,
   type FolderId,
@@ -54,7 +54,7 @@ export function NotesListPage() {
   const initialTagParam = searchParams.get("tag");
   const initialFolderParam = searchParams.get("folder");
 
-  const [openNoteDialog, setOpenNoteDialog] = useState(false);
+  const [isCreatingNote, setIsCreatingNote] = useState(false);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -66,28 +66,25 @@ export function NotesListPage() {
     initialFolderParam ? (initialFolderParam as FolderId) : null,
   );
 
-  useEffect(() => {
+  const [tagParamKey, setTagParamKey] = useState(initialTagParam);
+  if (initialTagParam !== tagParamKey) {
+    setTagParamKey(initialTagParam);
     if (initialTagParam) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedTagIds((prev) =>
         prev.includes(initialTagParam as TagId)
           ? prev
           : [initialTagParam as TagId],
       );
     }
-  }, [initialTagParam]);
+  }
 
-  useEffect(() => {
+  const [folderParamKey, setFolderParamKey] = useState(initialFolderParam);
+  if (initialFolderParam !== folderParamKey) {
+    setFolderParamKey(initialFolderParam);
     if (initialFolderParam) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedFolderId(initialFolderParam as FolderId);
     }
-  }, [initialFolderParam]);
-
-  const [draftTitle, setDraftTitle] = useState("");
-  const [draftContent, setDraftContent] = useState("");
-  const [draftPreview, setDraftPreview] = useState("");
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  }
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -175,7 +172,6 @@ export function NotesListPage() {
     tagIndex,
   ]);
   const {
-    createNote,
     favoriteNote,
     unfavoriteNote,
     archiveNote,
@@ -220,52 +216,28 @@ export function NotesListPage() {
     }
   }, [bulkDeleteNotes, selectedIds, toast, exitSelectionMode]);
 
-  const handleOpenNoteDialog = () => {
-    setDraftTitle("");
-    setDraftContent("");
-    setDraftPreview("");
-    setSaveStatus("idle");
-    setOpenNoteDialog(true);
-  };
+  const handleStartCreate = () => setIsCreatingNote(true);
 
-  const handleCloseNoteDialog = () => {
-    setSaveStatus("idle");
-    setOpenNoteDialog(false);
-    setDraftTitle("");
-    setDraftContent("");
-    setDraftPreview("");
-  };
-
-  const handleCreateNote = async () => {
-    try {
-      setSaveStatus("saving");
-      await createNote({
-        title: draftTitle,
-        content: draftContent,
-        preview: draftPreview,
-      });
-      setSaveStatus("saved");
-      toast.success({
-        title: "Note created",
-        description: "Your note has been saved.",
-      });
-      handleCloseNoteDialog();
-    } catch {
-      setSaveStatus("idle");
-      toast.error({
-        title: "Failed to create note",
-        description: "Something went wrong, try again later.",
-      });
-    }
-  };
-
-  const handleContentChange = useCallback(
-    (content: string, preview: string) => {
-      setDraftContent(content);
-      setDraftPreview(preview);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcut([
+    {
+      key: "k",
+      meta: true,
+      handler: (e) => {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      },
     },
-    [],
-  );
+    {
+      key: "n",
+      meta: true,
+      handler: (e) => {
+        e.preventDefault();
+        handleStartCreate();
+      },
+    },
+  ]);
 
   if (isLoading) {
     return (
@@ -312,89 +284,130 @@ export function NotesListPage() {
               size="md"
               icon={<Plus size={15} />}
               iconPosition="left"
-              onClick={handleOpenNoteDialog}
+              onClick={handleStartCreate}
             >
               New note
             </Button>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex-1 min-w-[200px]">
             <Input
+              ref={searchInputRef}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search notes..."
+              placeholder="Search notes... (⌘K)"
               leading={<Search size={14} />}
             />
           </div>
 
+          <Dropdown
+            width={220}
+            trigger={
+              <DropdownTrigger>
+                <FolderIcon
+                  size={13}
+                  className={
+                    activeFolder
+                      ? folderIconClasses(activeFolder.color)
+                      : "text-zinc-500"
+                  }
+                />
+                <span className="text-xs truncate max-w-[120px]">
+                  {activeFolder ? activeFolder.name : "All folders"}
+                </span>
+              </DropdownTrigger>
+            }
+            items={[
+              {
+                id: "",
+                label: "All folders",
+                icon: <FolderIcon size={13} className="text-zinc-500" />,
+                checked: !selectedFolderId,
+              },
+              ...(allFolders ?? []).map((folder) => ({
+                id: folder._id,
+                label: folder.name,
+                icon: (
+                  <FolderIcon
+                    size={12}
+                    className={folderIconClasses(folder.color)}
+                  />
+                ),
+                checked: selectedFolderId === folder._id,
+              })),
+            ]}
+            onSelect={(id) => setSelectedFolderId(id ? (id as FolderId) : null)}
+          />
+
+          <Dropdown
+            width={220}
+            closeOnSelect={false}
+            trigger={
+              <DropdownTrigger>
+                <TagIcon size={13} className="text-zinc-500" />
+                <span className="text-xs">Tags</span>
+                {selectedTagIds.length > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-zinc-700 text-zinc-100 text-[10px] leading-none">
+                    {selectedTagIds.length}
+                  </span>
+                )}
+              </DropdownTrigger>
+            }
+            items={[
+              ...(allTags ?? []).map((tag) => ({
+                id: tag._id,
+                label: tag.name,
+                icon: (
+                  <span
+                    className={`inline-block w-2 h-2 rounded-full ${tagSwatchClasses(tag.color)}`}
+                  />
+                ),
+                checked: selectedTagIds.includes(tag._id),
+              })),
+              ...(selectedTagIds.length > 0
+                ? ([
+                    { id: "__sep", label: "", separator: true },
+                    {
+                      id: "__clear",
+                      label: "Clear tags",
+                      variant: "danger" as const,
+                    },
+                  ] as const)
+                : []),
+            ]}
+            onSelect={(id) => {
+              if (id === "__clear") {
+                setSelectedTagIds([]);
+                return;
+              }
+              setSelectedTagIds((prev) =>
+                prev.includes(id as TagId)
+                  ? prev.filter((t) => t !== (id as TagId))
+                  : [...prev, id as TagId],
+              );
+            }}
+          />
+
           <button
             type="button"
             onClick={() => setSortOrder((o) => (o === "desc" ? "asc" : "desc"))}
-            className="flex items-center gap-2 px-3 h-11.5 rounded-2xl border border-zinc-800 bg-zinc-800/40 hover:border-zinc-700 hover:bg-zinc-800/60 text-zinc-400 hover:text-zinc-200 text-xs transition-all duration-200 shrink-0 cursor-pointer"
+            aria-label={
+              sortOrder === "desc" ? "Sort newest first" : "Sort oldest first"
+            }
+            className={`flex items-center gap-2 px-3 h-10 rounded-xl border border-zinc-800 bg-zinc-800/40 hover:border-zinc-700 hover:bg-zinc-800 text-zinc-300 text-sm transition-all duration-200 shrink-0 cursor-pointer ${focusRingZinc}`}
           >
             {sortOrder === "desc" ? (
-              <SortDesc size={15} />
+              <SortDesc size={14} />
             ) : (
-              <SortAsc size={15} />
+              <SortAsc size={14} />
             )}
-            <span className="hidden sm:inline">
-              {sortOrder === "desc" ? "Newest first" : "Oldest first"}
+            <span className="hidden sm:inline text-xs">
+              {sortOrder === "desc" ? "Newest" : "Oldest"}
             </span>
           </button>
         </div>
-
-        {activeFolder && (
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs ${folderBadgeClasses(activeFolder.color)}`}
-            >
-              <FolderIcon className="w-3 h-3" />
-              {activeFolder.name}
-            </span>
-            <button
-              type="button"
-              onClick={() => setSelectedFolderId(null)}
-              className="text-[10px] text-zinc-600 hover:text-zinc-300 transition-colors cursor-pointer"
-            >
-              Clear folder
-            </button>
-          </div>
-        )}
-
-        {allTags && allTags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            {allTags.map((tag) => {
-              const selected = selectedTagIds.includes(tag._id);
-              return (
-                <TagChip
-                  key={tag._id}
-                  name={tag.name}
-                  color={tag.color}
-                  size="md"
-                  selected={selected}
-                  onClick={() =>
-                    setSelectedTagIds((prev) =>
-                      selected
-                        ? prev.filter((id) => id !== tag._id)
-                        : [...prev, tag._id],
-                    )
-                  }
-                />
-              );
-            })}
-            {selectedTagIds.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setSelectedTagIds([])}
-                className="text-[10px] text-zinc-600 hover:text-zinc-300 px-1.5 py-0.5 transition-colors cursor-pointer"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-        )}
 
         <Divider />
 
@@ -424,7 +437,7 @@ export function NotesListPage() {
                 ? (note) => toggleSelected(note._id)
                 : setSelectedNote
             }
-            onCreateNote={handleOpenNoteDialog}
+            onCreateNote={handleStartCreate}
             onFavorite={async (note) => {
               try {
                 if (note.isFavorite) {
@@ -471,38 +484,13 @@ export function NotesListPage() {
         )}
       </div>
 
-      <Dialog
-        open={openNoteDialog}
-        onClose={handleCloseNoteDialog}
-        size="xl"
-        bare
-      >
-        <NoteEditor
-          initialTitle={draftTitle}
-          initialContent={draftContent}
-          onTitleChange={setDraftTitle}
-          onContentChange={handleContentChange}
-          onClose={handleCloseNoteDialog}
-        />
-        <div className="px-8 pb-6 flex justify-end gap-2 shrink-0">
-          <Button variant="ghost" size="sm" onClick={handleCloseNoteDialog}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            loading={saveStatus === "saving"}
-            onClick={handleCreateNote}
-          >
-            Save note
-          </Button>
-        </div>
-      </Dialog>
-
       <NoteDrawer
         note={selectedNote}
-        open={!!selectedNote}
-        onClose={() => setSelectedNote(null)}
+        open={isCreatingNote || !!selectedNote}
+        onClose={() => {
+          setIsCreatingNote(false);
+          setSelectedNote(null);
+        }}
       />
 
       {selectionMode && selectedIds.size > 0 && (

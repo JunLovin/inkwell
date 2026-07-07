@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { IconBox } from "@/shared/ui/icon-box";
+import { focusRingZinc } from "@/shared/ui/focus-styles";
 
 type SidenavItemProps = {
   label: string;
@@ -23,9 +24,11 @@ export function SidenavItem({
       type="button"
       onClick={onClick}
       title={collapsed ? label : undefined}
+      aria-current={active ? "page" : undefined}
       className={`
         w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
         text-sm transition-all duration-200 cursor-pointer group relative
+        ${focusRingZinc}
         ${
           active
             ? "bg-zinc-800 text-white"

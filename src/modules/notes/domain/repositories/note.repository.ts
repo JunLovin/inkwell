@@ -16,8 +16,13 @@ export type UpdateNoteInput = {
 
 export type BulkResult = { processed: number; skipped: number };
 
+export type CreateNoteResult = {
+  id: NoteId;
+  slug: string;
+};
+
 export type NoteMutations = {
-  create: (input: CreateNoteInput) => Promise<void>;
+  create: (input: CreateNoteInput) => Promise<CreateNoteResult>;
   update: (input: UpdateNoteInput) => Promise<void>;
   archive: (id: NoteId) => Promise<void>;
   restore: (id: NoteId) => Promise<void>;

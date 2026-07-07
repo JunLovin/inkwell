@@ -23,7 +23,7 @@ function makeRepo(
   mutationOverrides: Partial<NoteMutations> = {},
 ): NoteRepositoryPort {
   const mutations: NoteMutations = {
-    create: vi.fn(async () => {}),
+    create: vi.fn(async () => ({ id: "new_id" as NoteId, slug: "s" })),
     update: vi.fn(async () => {}),
     archive: vi.fn(async () => {}),
     restore: vi.fn(async () => {}),
@@ -106,7 +106,10 @@ describe("createNotesService", () => {
 
   describe("useNoteActions.createNote", () => {
     it("trims title and uses slug from the trimmed title", async () => {
-      const create = vi.fn(async () => {});
+      const create = vi.fn(async () => ({
+        id: "abc" as NoteId,
+        slug: "hello-world-xxxxxx",
+      }));
       const svc = createNotesService(makeRepo([], { create }));
       const { result } = renderHook(() => svc.useNoteActions());
       await result.current.createNote({
@@ -126,7 +129,10 @@ describe("createNotesService", () => {
     });
 
     it('falls back to "Untitled" when title is empty', async () => {
-      const create = vi.fn(async () => {});
+      const create = vi.fn(async () => ({
+        id: "abc" as NoteId,
+        slug: "untitled-xxxxxx",
+      }));
       const svc = createNotesService(makeRepo([], { create }));
       const { result } = renderHook(() => svc.useNoteActions());
       await result.current.createNote({
@@ -140,12 +146,28 @@ describe("createNotesService", () => {
       const firstCall = create.mock.calls[0] as unknown as [{ slug: string }];
       expect(firstCall[0].slug).toMatch(/^untitled-[a-z0-9]{6}$/);
     });
+
+    it("returns the id and slug from the underlying create mutation", async () => {
+      const create = vi.fn(async (input: { slug: string }) => ({
+        id: "created_1" as NoteId,
+        slug: input.slug,
+      }));
+      const svc = createNotesService(makeRepo([], { create }));
+      const { result } = renderHook(() => svc.useNoteActions());
+      const returned = await result.current.createNote({
+        title: "hi",
+        content: "",
+        preview: "",
+      });
+      expect(returned.id).toBe("created_1");
+      expect(returned.slug).toMatch(/^hi-[a-z0-9]{6}$/);
+    });
   });
 
   describe("useNoteActions delegations", () => {
     it("exposes all mutation methods bound to the repo", () => {
       const mutations: NoteMutations = {
-        create: vi.fn(async () => {}),
+        create: vi.fn(async () => ({ id: "new_id" as NoteId, slug: "s" })),
         update: vi.fn(async () => {}),
         archive: vi.fn(async () => {}),
         restore: vi.fn(async () => {}),

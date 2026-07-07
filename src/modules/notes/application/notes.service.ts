@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import type { Note } from "../domain/entities/note";
 import type {
   CreateNoteInput,
+  CreateNoteResult,
   NoteRepositoryPort,
 } from "../domain/repositories/note.repository";
 import {
@@ -80,7 +81,9 @@ export function createNotesService(repo: NoteRepositoryPort) {
     useNoteActions: () => {
       const mutations = repo.useMutations();
       return {
-        createNote: async (draft: CreateNoteDraft) => {
+        createNote: async (
+          draft: CreateNoteDraft,
+        ): Promise<CreateNoteResult> => {
           const title = draft.title.trim() || "Untitled";
           const input: CreateNoteInput = {
             title,
@@ -88,7 +91,7 @@ export function createNotesService(repo: NoteRepositoryPort) {
             content: draft.content,
             preview: draft.preview.trim(),
           };
-          await mutations.create(input);
+          return mutations.create(input);
         },
         updateNote: mutations.update,
         archiveNote: mutations.archive,
