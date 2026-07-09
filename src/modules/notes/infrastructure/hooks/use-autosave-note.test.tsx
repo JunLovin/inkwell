@@ -87,7 +87,7 @@ describe("useAutoSaveNote", () => {
     expect(result.current.saveStatus).toBe("idle");
   });
 
-  it("returns to idle and toasts an error when updateNote rejects", async () => {
+  it("moves to error state and retries once before toasting when updateNote rejects", async () => {
     const updateNote = vi.fn(async () => {
       throw new Error("boom");
     });
@@ -98,7 +98,13 @@ describe("useAutoSaveNote", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(DELAY);
     });
-    expect(result.current.saveStatus).toBe("idle");
+    expect(result.current.saveStatus).toBe("error");
+    expect(useToastStore.getState().toasts).toHaveLength(0);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+    expect(updateNote).toHaveBeenCalledTimes(2);
     const toasts = useToastStore.getState().toasts;
     expect(toasts).toHaveLength(1);
     expect(toasts[0]).toMatchObject({

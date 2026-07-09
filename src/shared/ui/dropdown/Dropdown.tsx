@@ -48,41 +48,45 @@ export function Dropdown({
     const menu = menuRef.current;
     if (!menu) return;
 
-    if (open) {
-      const container = containerRef.current;
-      if (!container) return;
-      const rect = container.getBoundingClientRect();
-      setCoords({
-        top: rect.bottom + 8,
-        left: align === "right" ? rect.right - width : rect.left,
-        width,
-      });
-      gsap.set(menu, { display: "block" });
-      gsap.fromTo(
-        menu,
-        { opacity: 0, y: -6, scale: 0.97, filter: "blur(3px)" },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          filter: "blur(0px)",
-          duration: 0.22,
-          ease: "power3.out",
-        },
-      );
-    } else {
-      gsap.to(menu, {
-        opacity: 0,
-        y: -6,
-        scale: 0.97,
-        filter: "blur(3px)",
-        duration: 0.15,
-        ease: "power2.in",
-        onComplete: () => {
-          gsap.set(menu, { display: "none" });
-        },
-      });
-    }
+    const ctx = gsap.context(() => {
+      if (open) {
+        const container = containerRef.current;
+        if (!container) return;
+        const rect = container.getBoundingClientRect();
+        setCoords({
+          top: rect.bottom + 8,
+          left: align === "right" ? rect.right - width : rect.left,
+          width,
+        });
+        gsap.set(menu, { display: "block" });
+        gsap.fromTo(
+          menu,
+          { opacity: 0, y: -6, scale: 0.97, filter: "blur(3px)" },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            filter: "blur(0px)",
+            duration: 0.22,
+            ease: "power3.out",
+          },
+        );
+      } else {
+        gsap.to(menu, {
+          opacity: 0,
+          y: -6,
+          scale: 0.97,
+          filter: "blur(3px)",
+          duration: 0.15,
+          ease: "power2.in",
+          onComplete: () => {
+            gsap.set(menu, { display: "none" });
+          },
+        });
+      }
+    });
+
+    return () => ctx.revert();
   }, [open, align, width]);
 
   useEffect(() => {

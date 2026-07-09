@@ -63,40 +63,44 @@ export function Dialog({
 
     gsap.killTweensOf([overlay, panel]);
 
-    if (open) {
-      gsap.set(overlay, { display: "flex" });
-      gsap.fromTo(
-        overlay,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.25, ease: "power2.out" },
-      );
-      gsap.fromTo(
-        panel,
-        { opacity: 0, scale: 0.95, y: 16, filter: "blur(6px)" },
-        {
-          opacity: 1,
-          scale: 1,
-          y: 0,
-          filter: "blur(0px)",
-          duration: 0.35,
-          ease: "power3.out",
-        },
-      );
-    } else {
-      const isStillClosed = () => !openRef.current;
-      gsap.to(overlay, { opacity: 0, duration: 0.2, ease: "power2.in" });
-      gsap.to(panel, {
-        opacity: 0,
-        scale: 0.96,
-        y: 8,
-        filter: "blur(4px)",
-        duration: 0.2,
-        ease: "power2.in",
-        onComplete: () => {
-          if (isStillClosed()) gsap.set(overlay, { display: "none" });
-        },
-      });
-    }
+    const ctx = gsap.context(() => {
+      if (open) {
+        gsap.set(overlay, { display: "flex" });
+        gsap.fromTo(
+          overlay,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.25, ease: "power2.out" },
+        );
+        gsap.fromTo(
+          panel,
+          { opacity: 0, scale: 0.95, y: 16, filter: "blur(6px)" },
+          {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            filter: "blur(0px)",
+            duration: 0.35,
+            ease: "power3.out",
+          },
+        );
+      } else {
+        const isStillClosed = () => !openRef.current;
+        gsap.to(overlay, { opacity: 0, duration: 0.2, ease: "power2.in" });
+        gsap.to(panel, {
+          opacity: 0,
+          scale: 0.96,
+          y: 8,
+          filter: "blur(4px)",
+          duration: 0.2,
+          ease: "power2.in",
+          onComplete: () => {
+            if (isStillClosed()) gsap.set(overlay, { display: "none" });
+          },
+        });
+      }
+    });
+
+    return () => ctx.revert();
   }, [open]);
 
   useEffect(() => {

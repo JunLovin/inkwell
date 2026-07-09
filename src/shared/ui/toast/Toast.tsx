@@ -91,30 +91,31 @@ function ToastItem({ toast }: { toast: Toast }) {
     const bar = barRef.current;
     if (!el || !bar) return;
 
-    const tl = gsap.timeline();
-
-    tl.fromTo(
-      el,
-      { x: 40, opacity: 0, filter: "blur(4px)" },
-      {
-        x: 0,
-        opacity: 1,
-        filter: "blur(0px)",
-        duration: 0.45,
-        ease: "power3.out",
-      },
-    ).fromTo(
-      bar,
-      { scaleX: 1 },
-      { scaleX: 0, duration: duration / 1000, ease: "none" },
-      "-=0.1",
-    );
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline();
+      tl.fromTo(
+        el,
+        { x: 40, opacity: 0, filter: "blur(4px)" },
+        {
+          x: 0,
+          opacity: 1,
+          filter: "blur(0px)",
+          duration: 0.45,
+          ease: "power3.out",
+        },
+      ).fromTo(
+        bar,
+        { scaleX: 1 },
+        { scaleX: 0, duration: duration / 1000, ease: "none" },
+        "-=0.1",
+      );
+    });
 
     const exitTimer = setTimeout(handleRemove, duration);
 
     return () => {
       clearTimeout(exitTimer);
-      tl.kill();
+      ctx.revert();
     };
   }, [duration, handleRemove]);
 

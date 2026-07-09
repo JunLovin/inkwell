@@ -3,11 +3,13 @@ import { v } from "convex/values";
 import { GoogleGenAI } from "@google/genai";
 import { errors } from "./_shared/errors";
 import { requireUserId } from "./model/auth";
+import { buildSystemInstruction } from "./_shared/system-prompt";
 
 const MAX_MESSAGES = 40;
 const MAX_TEXT_LENGTH = 20_000;
 const MAX_INLINE_DATA_BYTES = 8 * 1024 * 1024;
-const MAX_SYSTEM_PROMPT_LENGTH = 8_000;
+const MAX_NOTE_TITLE_LENGTH = 200;
+const MAX_NOTE_CONTEXT_LENGTH = 20_000;
 
 const inlineDataValidator = v.object({
   mimeType: v.string(),
@@ -37,7 +39,13 @@ function readEnv(name: string): string | undefined {
 export const chat = action({
   args: {
     messages: v.array(messageValidator),
-    systemPrompt: v.optional(v.string()),
+    mode: v.optional(v.union(v.literal("chat"), v.literal("writer"))),
+    attachedNote: v.optional(
+      v.object({
+        title: v.string(),
+        plainText: v.string(),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
     await requireUserId(ctx);
@@ -50,11 +58,13 @@ export const chat = action({
         `Too many messages (max ${MAX_MESSAGES}). Clear the chat and try again.`,
       );
     }
-    if (
-      args.systemPrompt &&
-      args.systemPrompt.length > MAX_SYSTEM_PROMPT_LENGTH
-    ) {
-      throw errors.invalidInput("System prompt exceeds size limit");
+    if (args.attachedNote) {
+      if (args.attachedNote.title.length > MAX_NOTE_TITLE_LENGTH) {
+        throw errors.invalidInput("Attached note title exceeds size limit");
+      }
+      if (args.attachedNote.plainText.length > MAX_NOTE_CONTEXT_LENGTH) {
+        throw errors.invalidInput("Attached note content exceeds size limit");
+      }
     }
     for (const message of args.messages) {
       for (const part of message.parts) {
@@ -81,16 +91,26 @@ export const chat = action({
     if (!apiKey) throw errors.aiNotConfigured();
 
     const ai = new GoogleGenAI({ apiKey });
+    const systemInstruction = buildSystemInstruction(
+      args.mode ?? "chat",
+      args.attachedNote ?? null,
+    );
 
-    const result = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: args.messages,
-      config: {
-        maxOutputTokens: 2048,
-        temperature: 0.7,
-        systemInstruction: args.systemPrompt,
-      },
-    });
+    let result;
+    try {
+      result = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: args.messages,
+        config: {
+          maxOutputTokens: 2048,
+          temperature: 0.7,
+          systemInstruction,
+        },
+      });
+    } catch (err) {
+      console.error("[ai.chat] provider error", err);
+      throw errors.aiUnavailable();
+    }
 
     return result.text ?? "";
   },

@@ -13,23 +13,26 @@ export function Header() {
     const header = headerRef.current;
     if (!header) return;
 
-    gsap.fromTo(
-      header,
-      { opacity: 0, marginTop: -16 },
-      {
-        opacity: 1,
-        marginTop: 0,
-        duration: 0.8,
-        ease: "power3.out",
-        delay: 0.4,
-      },
-    );
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        header,
+        { opacity: 0, marginTop: -16 },
+        {
+          opacity: 1,
+          marginTop: 0,
+          duration: 0.8,
+          ease: "power3.out",
+          delay: 0.4,
+        },
+      );
+    });
 
     const onScroll = () => setScrolled(window.scrollY > 24);
     window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
       window.removeEventListener("scroll", onScroll);
+      ctx.revert();
     };
   }, []);
 

@@ -1,8 +1,9 @@
 import { AuthGuard } from "@/modules/auth";
-import { AIChatButton, AIChatPanel } from "@/modules/ai-chat";
+import { AIChatButton } from "@/modules/ai-chat";
 import { DashboardSidenav } from "@/shared/layout/dashboard-sidenav";
 import { ErrorBoundary } from "@/shared/providers/error-boundary";
 import { ContentWrapper } from "./content-wrapper";
+import { AIChatPanelLoader } from "./ai-chat-panel-loader";
 
 export default function DashboardLayout({
   children,
@@ -18,7 +19,7 @@ export default function DashboardLayout({
         </ContentWrapper>
       </div>
       <AIChatButton />
-      <AIChatPanel />
+      <AIChatPanelLoader />
     </AuthGuard>
   );
 }

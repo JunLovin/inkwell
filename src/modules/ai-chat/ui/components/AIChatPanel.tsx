@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { usePathname, useParams } from "next/navigation";
 import { Eraser, Sparkles, X } from "lucide-react";
 import gsap from "gsap";
 
-import type { Id } from "@/convex/_generated/dataModel";
 import { Tooltip } from "@/shared/ui/tooltip";
-import { useNote } from "@/modules/notes";
+import { useNote, type NoteId } from "@/modules/notes";
 import { extractTextFromLexicalJSON } from "@/lib/lexical";
 
 import { useAIChatStore } from "../../infrastructure/stores/ai-chat.store";
@@ -46,7 +46,22 @@ export function AIChatPanel() {
     clearContext,
     removeLastAssistantMessage,
     setPendingInsertion,
-  } = useAIChatStore();
+  } = useAIChatStore(
+    useShallow((s) => ({
+      isOpen: s.isOpen,
+      attachedNote: s.attachedNote,
+      attachedFiles: s.attachedFiles,
+      isLoading: s.isLoading,
+      close: s.close,
+      addMessage: s.addMessage,
+      setAttachedNote: s.setAttachedNote,
+      setLoading: s.setLoading,
+      setContext: s.setContext,
+      clearContext: s.clearContext,
+      removeLastAssistantMessage: s.removeLastAssistantMessage,
+      setPendingInsertion: s.setPendingInsertion,
+    })),
+  );
 
   const noteSlug =
     pathname.startsWith("/dashboard/notes/") && typeof params.slug === "string"
@@ -68,35 +83,39 @@ export function AIChatPanel() {
 
     gsap.killTweensOf(panel);
 
-    if (isOpen) {
-      gsap.set(panel, { display: "flex" });
-      gsap.fromTo(
-        panel,
-        { opacity: 0, scale: 0.95, y: 16, filter: "blur(4px)" },
-        {
-          opacity: 1,
-          scale: 1,
-          y: 0,
-          filter: "blur(0px)",
-          duration: 0.35,
-          ease: "power3.out",
-        },
-      );
-    } else {
-      gsap.to(panel, {
-        opacity: 0,
-        scale: 0.95,
-        y: 16,
-        filter: "blur(4px)",
-        duration: 0.25,
-        ease: "power3.in",
-        onComplete: () => {
-          if (!useAIChatStore.getState().isOpen) {
-            gsap.set(panel, { display: "none" });
-          }
-        },
-      });
-    }
+    const ctx = gsap.context(() => {
+      if (isOpen) {
+        gsap.set(panel, { display: "flex" });
+        gsap.fromTo(
+          panel,
+          { opacity: 0, scale: 0.95, y: 16, filter: "blur(4px)" },
+          {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            filter: "blur(0px)",
+            duration: 0.35,
+            ease: "power3.out",
+          },
+        );
+      } else {
+        gsap.to(panel, {
+          opacity: 0,
+          scale: 0.95,
+          y: 16,
+          filter: "blur(4px)",
+          duration: 0.25,
+          ease: "power3.in",
+          onComplete: () => {
+            if (!useAIChatStore.getState().isOpen) {
+              gsap.set(panel, { display: "none" });
+            }
+          },
+        });
+      }
+    });
+
+    return () => ctx.revert();
   }, [isOpen]);
 
   useEffect(() => {
@@ -135,7 +154,7 @@ export function AIChatPanel() {
         });
         if (writerMode && attachedNote?.id) {
           setPendingInsertion({
-            noteId: attachedNote.id as Id<"notes">,
+            noteId: attachedNote.id as NoteId,
             markdown: response,
           });
           addMessage({

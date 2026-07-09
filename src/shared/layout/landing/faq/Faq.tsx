@@ -28,7 +28,7 @@ const items: Item[] = [
   {
     question: "Can I export my notes?",
     answer:
-      "Anytime. Settings → Danger Zone → \"Download my notes (JSON)\" gives you a portable file with everything, including archived and favorited notes.",
+      'Anytime. Settings → Danger Zone → "Download my notes (JSON)" gives you a portable file with everything, including archived and favorited notes.',
   },
 ];
 
@@ -49,25 +49,29 @@ function FaqRow({
     const inner = innerRef.current;
     if (!body || !inner) return;
 
-    if (open) {
-      gsap.fromTo(
-        body,
-        { maxHeight: 0, opacity: 0 },
-        {
-          maxHeight: inner.scrollHeight,
-          opacity: 1,
-          duration: 0.35,
-          ease: "power3.out",
-        },
-      );
-    } else {
-      gsap.to(body, {
-        maxHeight: 0,
-        opacity: 0,
-        duration: 0.25,
-        ease: "power3.in",
-      });
-    }
+    const ctx = gsap.context(() => {
+      if (open) {
+        gsap.fromTo(
+          body,
+          { maxHeight: 0, opacity: 0 },
+          {
+            maxHeight: inner.scrollHeight,
+            opacity: 1,
+            duration: 0.35,
+            ease: "power3.out",
+          },
+        );
+      } else {
+        gsap.to(body, {
+          maxHeight: 0,
+          opacity: 0,
+          duration: 0.25,
+          ease: "power3.in",
+        });
+      }
+    });
+
+    return () => ctx.revert();
   }, [open]);
 
   return (

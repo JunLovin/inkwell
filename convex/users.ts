@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { errors } from "./_shared/errors";
 import { requireUserId } from "./model/auth";
 import { cascadeDeleteUser } from "./model/cascade";
+import { LIMITS, assertMaxLength } from "./_shared/validation";
 
 export const getUserInfo = query({
   handler: async (ctx) => {
@@ -20,6 +21,7 @@ export const updateProfile = mutation({
     const trimmed = args.name.trim();
     if (trimmed.length < 2)
       throw errors.invalidInput("Name must be at least 2 characters");
+    assertMaxLength("Name", trimmed, LIMITS.userName);
     await ctx.db.patch("users", userId, { name: trimmed });
   },
 });

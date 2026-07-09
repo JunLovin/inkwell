@@ -4,6 +4,7 @@ import { errors } from "./_shared/errors";
 import { requireUserId } from "./model/auth";
 import { assertFolderOwner, assertNoteOwner } from "./model/ownership";
 import { cascadeDeleteFolder } from "./model/cascade";
+import { LIMITS, assertMaxLength, assertColorName } from "./_shared/validation";
 
 export const listFolders = query({
   args: {},
@@ -24,6 +25,8 @@ export const createFolder = mutation({
 
     const name = args.name.trim();
     if (!name) throw errors.invalidInput("Folder name is required");
+    assertMaxLength("Folder name", name, LIMITS.folderName);
+    assertColorName("Folder color", args.color);
 
     const existing = await ctx.db
       .query("folders")
@@ -49,6 +52,7 @@ export const renameFolder = mutation({
 
     const name = args.name.trim();
     if (!name) throw errors.invalidInput("Folder name is required");
+    assertMaxLength("Folder name", name, LIMITS.folderName);
 
     if (name !== folder.name) {
       const collision = await ctx.db
@@ -104,6 +108,8 @@ export const createAndAssignFolder = mutation({
 
     const name = args.name.trim();
     if (!name) throw errors.invalidInput("Folder name is required");
+    assertMaxLength("Folder name", name, LIMITS.folderName);
+    assertColorName("Folder color", args.color);
 
     const existing = await ctx.db
       .query("folders")

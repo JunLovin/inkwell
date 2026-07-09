@@ -17,4 +17,9 @@ export const errors = {
       code: "AI_NOT_CONFIGURED",
       message: "AI is not configured",
     }),
+  aiUnavailable: () =>
+    new ConvexError({
+      code: "AI_UNAVAILABLE",
+      message: "AI service is temporarily unavailable",
+    }),
 };

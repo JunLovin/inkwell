@@ -3,7 +3,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { gsap } from "gsap";
-import { ArrowLeft, Star, Archive, Trash2, Clock } from "lucide-react";
+import {
+  ArrowLeft,
+  Star,
+  Archive,
+  Trash2,
+  Clock,
+  AlertTriangle,
+} from "lucide-react";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { $getRoot } from "lexical";
@@ -54,6 +61,7 @@ export function NoteDetailPage({ slug }: Props) {
   const [titleDraft, setTitleDraft] = useState("");
   const [contentJson, setContentJson] = useState("");
   const [syncedNoteId, setSyncedNoteId] = useState<string | null>(null);
+  const [restoreFailed, setRestoreFailed] = useState(false);
 
   const previewRef = useRef<string>("");
   const editorRef = useRef<LexicalEditor | null>(null);
@@ -271,6 +279,18 @@ export function NoteDetailPage({ slug }: Props) {
               <TagPicker noteId={note._id} />
             </div>
 
+            {restoreFailed && (
+              <div
+                role="alert"
+                className="mb-4 flex items-start gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 text-xs text-amber-200"
+              >
+                <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+                <span>
+                  We couldn&apos;t render this note&apos;s saved content. Please
+                  refresh — avoid editing to prevent overwriting your data.
+                </span>
+              </div>
+            )}
             <div className="relative" onClick={(e) => e.stopPropagation()}>
               <EditorPluginsBundle
                 contentEditable={
@@ -287,6 +307,7 @@ export function NoteDetailPage({ slug }: Props) {
                 }
                 editorRef={editorRef}
                 restoreContent={note.content || undefined}
+                onRestoreError={() => setRestoreFailed(true)}
                 onChange={(editorState) => {
                   const json = JSON.stringify(editorState.toJSON());
                   if (json === contentJson) return;

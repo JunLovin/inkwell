@@ -7,7 +7,7 @@ import type { ChatRepositoryPort } from "../../domain/repositories/chat.reposito
 export const convexChatRepository: ChatRepositoryPort = {
   useSendMessage: () => {
     const send = useAction(api.ai.chat);
-    return async ({ messages, systemPrompt }) =>
-      send({ messages, systemPrompt });
+    return async ({ messages, mode, attachedNote }) =>
+      send({ messages, mode, attachedNote });
   },
 };

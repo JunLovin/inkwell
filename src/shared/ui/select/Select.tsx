@@ -51,41 +51,45 @@ export function Select({
     const menu = menuRef.current;
     if (!menu) return;
 
-    if (open) {
-      const trigger = triggerRef.current;
-      if (!trigger) return;
-      const rect = trigger.getBoundingClientRect();
-      setCoords({
-        top: rect.bottom + 8,
-        left: rect.left,
-        width: rect.width,
-      });
-      gsap.set(menu, { display: "block" });
-      gsap.fromTo(
-        menu,
-        { opacity: 0, y: -6, scale: 0.97, filter: "blur(3px)" },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          filter: "blur(0px)",
-          duration: 0.22,
-          ease: "power3.out",
-        },
-      );
-    } else {
-      gsap.to(menu, {
-        opacity: 0,
-        y: -6,
-        scale: 0.97,
-        filter: "blur(3px)",
-        duration: 0.15,
-        ease: "power2.in",
-        onComplete: () => {
-          gsap.set(menu, { display: "none" });
-        },
-      });
-    }
+    const ctx = gsap.context(() => {
+      if (open) {
+        const trigger = triggerRef.current;
+        if (!trigger) return;
+        const rect = trigger.getBoundingClientRect();
+        setCoords({
+          top: rect.bottom + 8,
+          left: rect.left,
+          width: rect.width,
+        });
+        gsap.set(menu, { display: "block" });
+        gsap.fromTo(
+          menu,
+          { opacity: 0, y: -6, scale: 0.97, filter: "blur(3px)" },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            filter: "blur(0px)",
+            duration: 0.22,
+            ease: "power3.out",
+          },
+        );
+      } else {
+        gsap.to(menu, {
+          opacity: 0,
+          y: -6,
+          scale: 0.97,
+          filter: "blur(3px)",
+          duration: 0.15,
+          ease: "power2.in",
+          onComplete: () => {
+            gsap.set(menu, { display: "none" });
+          },
+        });
+      }
+    });
+
+    return () => ctx.revert();
   }, [open]);
 
   useEffect(() => {
