@@ -4,11 +4,11 @@ import schema from "./schema";
 import { api } from "./_generated/api";
 import { seedUser } from "./_shared/test_utils";
 
+const generateContentMock = vi.fn(async () => ({ text: "gemini-said-hi" }));
+
 vi.mock("@google/genai", () => {
   class GoogleGenAI {
-    models = {
-      generateContent: async () => ({ text: "gemini-said-hi" }),
-    };
+    models = { generateContent: generateContentMock };
   }
   return { GoogleGenAI };
 });
@@ -19,6 +19,8 @@ describe("ai.chat", () => {
   beforeEach(() => {
     vi.stubEnv("AI_TEST_MODE", "");
     vi.stubEnv("GEMINI_API_KEY", "test-key");
+    generateContentMock.mockReset();
+    generateContentMock.mockResolvedValue({ text: "gemini-said-hi" });
   });
 
   afterEach(() => {
@@ -62,5 +64,16 @@ describe("ai.chat", () => {
       messages: [{ role: "user", parts: [{ text: "hi" }] }],
     });
     expect(out).toBe("[stub] reply");
+  });
+
+  test("throws AI_UNAVAILABLE when the provider call fails", async () => {
+    generateContentMock.mockRejectedValueOnce(new Error("provider boom"));
+    const t = convexTest(schema, modules);
+    const { asUser } = await seedUser(t);
+    await expect(
+      asUser.action(api.ai.chat, {
+        messages: [{ role: "user", parts: [{ text: "hi" }] }],
+      }),
+    ).rejects.toThrow(/AI service is temporarily unavailable/);
   });
 });

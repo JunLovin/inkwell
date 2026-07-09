@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Folder as FolderIcon, FolderPlus, Plus } from "lucide-react";
 
-import type { Id } from "@/convex/_generated/dataModel";
+import type { NoteId } from "@/modules/notes";
+import type { FolderId } from "../../../domain/entities/folder";
 import { useToast } from "@/shared/hooks/use-toast";
 import {
   folderBadgeClasses,
@@ -16,8 +17,8 @@ import {
 } from "../../../infrastructure/hooks/use-folders";
 
 type FolderPickerProps = {
-  noteId: Id<"notes"> | undefined;
-  currentFolderId: Id<"folders"> | undefined | null;
+  noteId: NoteId | undefined;
+  currentFolderId: FolderId | undefined | null;
 };
 
 export function FolderPicker({ noteId, currentFolderId }: FolderPickerProps) {
@@ -79,7 +80,7 @@ export function FolderPicker({ noteId, currentFolderId }: FolderPickerProps) {
     [folders, currentFolderId],
   );
 
-  const handleSelect = async (folderId: Id<"folders">) => {
+  const handleSelect = async (folderId: FolderId) => {
     if (!noteId) return;
     try {
       await moveNoteToFolder(noteId, folderId);

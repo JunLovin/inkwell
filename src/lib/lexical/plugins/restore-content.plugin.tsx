@@ -3,7 +3,12 @@
 import { useEffect, useRef } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 
-export function RestoreContentPlugin({ content }: { content: string }) {
+type Props = {
+  content: string;
+  onRestoreError?: (err: unknown) => void;
+};
+
+export function RestoreContentPlugin({ content, onRestoreError }: Props) {
   const [editor] = useLexicalComposerContext();
   const restored = useRef(false);
 
@@ -15,8 +20,9 @@ export function RestoreContentPlugin({ content }: { content: string }) {
       restored.current = true;
     } catch (err) {
       console.warn("[lexical] failed to restore editor content", err);
+      onRestoreError?.(err);
     }
-  }, [editor, content]);
+  }, [editor, content, onRestoreError]);
 
   return null;
 }

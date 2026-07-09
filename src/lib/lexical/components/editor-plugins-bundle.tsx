@@ -24,6 +24,7 @@ type EditorPluginsBundleProps = {
   onChange?: (editorState: EditorState) => void;
   editorRef?: Ref<LexicalEditor>;
   restoreContent?: string;
+  onRestoreError?: (err: unknown) => void;
 };
 
 export function EditorPluginsBundle({
@@ -31,6 +32,7 @@ export function EditorPluginsBundle({
   onChange,
   editorRef,
   restoreContent,
+  onRestoreError,
 }: EditorPluginsBundleProps) {
   return (
     <>
@@ -48,7 +50,12 @@ export function EditorPluginsBundle({
       <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
       <FloatingFormatToolbarPlugin />
       {editorRef && <EditorRefPlugin editorRef={editorRef} />}
-      {restoreContent && <RestoreContentPlugin content={restoreContent} />}
+      {restoreContent && (
+        <RestoreContentPlugin
+          content={restoreContent}
+          onRestoreError={onRestoreError}
+        />
+      )}
       {onChange && <OnChangePlugin onChange={onChange} />}
     </>
   );

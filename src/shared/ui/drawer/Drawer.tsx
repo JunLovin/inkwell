@@ -55,30 +55,34 @@ export function Drawer({
 
     gsap.killTweensOf([overlay, panel]);
 
-    if (open) {
-      gsap.set(overlay, { display: "flex" });
-      gsap.fromTo(
-        overlay,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.25, ease: "power2.out" },
-      );
-      gsap.fromTo(
-        panel,
-        { x: "100%", opacity: 0 },
-        { x: "0%", opacity: 1, duration: 0.4, ease: "power3.out" },
-      );
-    } else {
-      gsap.to(overlay, { opacity: 0, duration: 0.2, ease: "power2.in" });
-      gsap.to(panel, {
-        x: "100%",
-        opacity: 0,
-        duration: 0.3,
-        ease: "power3.in",
-        onComplete: () => {
-          if (!openRef.current) gsap.set(overlay, { display: "none" });
-        },
-      });
-    }
+    const ctx = gsap.context(() => {
+      if (open) {
+        gsap.set(overlay, { display: "flex" });
+        gsap.fromTo(
+          overlay,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.25, ease: "power2.out" },
+        );
+        gsap.fromTo(
+          panel,
+          { x: "100%", opacity: 0 },
+          { x: "0%", opacity: 1, duration: 0.4, ease: "power3.out" },
+        );
+      } else {
+        gsap.to(overlay, { opacity: 0, duration: 0.2, ease: "power2.in" });
+        gsap.to(panel, {
+          x: "100%",
+          opacity: 0,
+          duration: 0.3,
+          ease: "power3.in",
+          onComplete: () => {
+            if (!openRef.current) gsap.set(overlay, { display: "none" });
+          },
+        });
+      }
+    });
+
+    return () => ctx.revert();
   }, [open, mounted]);
 
   useEffect(() => {

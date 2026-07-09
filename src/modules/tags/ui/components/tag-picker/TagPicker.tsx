@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Tag as TagIcon } from "lucide-react";
 
-import type { Id } from "@/convex/_generated/dataModel";
+import type { NoteId } from "@/modules/notes";
+import type { TagId } from "../../../domain/entities/tag";
 import { useToast } from "@/shared/hooks/use-toast";
 import { TagChip } from "../tag-chip";
 import {
@@ -17,7 +18,7 @@ import {
 } from "../../../infrastructure/hooks/use-tags";
 
 type TagPickerProps = {
-  noteId: Id<"notes"> | undefined;
+  noteId: NoteId | undefined;
 };
 
 export function TagPicker({ noteId }: TagPickerProps) {
@@ -79,7 +80,7 @@ export function TagPicker({ noteId }: TagPickerProps) {
     [allTags, trimmed],
   );
 
-  const handleToggle = async (tagId: Id<"tags">) => {
+  const handleToggle = async (tagId: TagId) => {
     if (!noteId) return;
     try {
       if (assignedIds.has(tagId)) {
@@ -109,7 +110,7 @@ export function TagPicker({ noteId }: TagPickerProps) {
     }
   };
 
-  const handleRemove = async (tagId: Id<"tags">) => {
+  const handleRemove = async (tagId: TagId) => {
     if (!noteId) return;
     try {
       await unassignTagFromNote(noteId, tagId);

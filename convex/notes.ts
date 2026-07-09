@@ -5,6 +5,7 @@ import { buildSearchableContent } from "./_shared/lexicalText";
 import { requireUserId } from "./model/auth";
 import { assertNoteOwner } from "./model/ownership";
 import { cascadeDeleteNote } from "./model/cascade";
+import { LIMITS, assertMaxLength } from "./_shared/validation";
 import {
   findNoteBySlug,
   listActiveNotes,
@@ -84,6 +85,10 @@ export const createNote = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
+    assertMaxLength("Title", args.title, LIMITS.noteTitle);
+    assertMaxLength("Slug", args.slug, LIMITS.noteSlug);
+    assertMaxLength("Preview", args.preview, LIMITS.notePreview);
+    assertMaxLength("Content", args.content, LIMITS.noteContent);
     const now = Date.now();
     const note = {
       authorId: userId,
@@ -114,6 +119,13 @@ export const updateNote = mutation({
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
     const note = await assertNoteOwner(ctx, args.id, userId);
+
+    if (args.title !== undefined)
+      assertMaxLength("Title", args.title, LIMITS.noteTitle);
+    if (args.content !== undefined)
+      assertMaxLength("Content", args.content, LIMITS.noteContent);
+    if (args.preview !== undefined)
+      assertMaxLength("Preview", args.preview, LIMITS.notePreview);
 
     const nextTitle = args.title ?? note.title;
     const nextContent = args.content ?? note.content;

@@ -63,22 +63,26 @@ export function Sidenav({
     const overlay = overlayRef.current;
     if (!nav || !overlay) return;
 
-    if (mobileOpen) {
-      gsap.set(overlay, { display: "block" });
-      gsap.set(nav, { x: -EXPANDED_W });
-      gsap.to(overlay, { opacity: 1, duration: 0.25, ease: "power2.out" });
-      gsap.to(nav, { x: 0, duration: 0.35, ease: "power3.out" });
-    } else {
-      gsap.to(overlay, {
-        opacity: 0,
-        duration: 0.2,
-        ease: "power2.in",
-        onComplete: () => {
-          gsap.set(overlay, { display: "none" });
-        },
-      });
-      gsap.to(nav, { x: -EXPANDED_W, duration: 0.3, ease: "power3.in" });
-    }
+    const ctx = gsap.context(() => {
+      if (mobileOpen) {
+        gsap.set(overlay, { display: "block" });
+        gsap.set(nav, { x: -EXPANDED_W });
+        gsap.to(overlay, { opacity: 1, duration: 0.25, ease: "power2.out" });
+        gsap.to(nav, { x: 0, duration: 0.35, ease: "power3.out" });
+      } else {
+        gsap.to(overlay, {
+          opacity: 0,
+          duration: 0.2,
+          ease: "power2.in",
+          onComplete: () => {
+            gsap.set(overlay, { display: "none" });
+          },
+        });
+        gsap.to(nav, { x: -EXPANDED_W, duration: 0.3, ease: "power3.in" });
+      }
+    });
+
+    return () => ctx.revert();
   }, [mobileOpen]);
 
   useEffect(() => {
@@ -88,11 +92,15 @@ export function Sidenav({
     const isMobile = window.innerWidth < 768;
     if (isMobile) return;
 
-    gsap.to(nav, {
-      width: collapsed ? COLLAPSED_W : EXPANDED_W,
-      duration: 0.35,
-      ease: "power3.inOut",
+    const ctx = gsap.context(() => {
+      gsap.to(nav, {
+        width: collapsed ? COLLAPSED_W : EXPANDED_W,
+        duration: 0.35,
+        ease: "power3.inOut",
+      });
     });
+
+    return () => ctx.revert();
   }, [collapsed]);
 
   useEffect(() => {
@@ -100,11 +108,15 @@ export function Sidenav({
     const isMobile = window.innerWidth < 768;
     if (!nav || isMobile) return;
 
-    gsap.fromTo(
-      nav,
-      { x: -EXPANDED_W, opacity: 0 },
-      { x: 0, opacity: 1, duration: 0.5, ease: "power3.out", delay: 0.1 },
-    );
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        nav,
+        { x: -EXPANDED_W, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.5, ease: "power3.out", delay: 0.1 },
+      );
+    });
+
+    return () => ctx.revert();
   }, []);
 
   const closeMobile = () => {

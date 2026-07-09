@@ -4,6 +4,7 @@ import { errors } from "./_shared/errors";
 import { requireUserId } from "./model/auth";
 import { assertNoteOwner, assertTagOwner } from "./model/ownership";
 import { cascadeDeleteTag } from "./model/cascade";
+import { LIMITS, assertMaxLength, assertColorName } from "./_shared/validation";
 
 export const listTags = query({
   args: {},
@@ -24,6 +25,8 @@ export const createTag = mutation({
 
     const name = args.name.trim();
     if (!name) throw errors.invalidInput("Tag name is required");
+    assertMaxLength("Tag name", name, LIMITS.tagName);
+    assertColorName("Tag color", args.color);
 
     const existing = await ctx.db
       .query("tags")
@@ -49,6 +52,7 @@ export const renameTag = mutation({
 
     const name = args.name.trim();
     if (!name) throw errors.invalidInput("Tag name is required");
+    assertMaxLength("Tag name", name, LIMITS.tagName);
 
     if (name !== tag.name) {
       const collision = await ctx.db
@@ -85,6 +89,8 @@ export const createAndAssignTag = mutation({
 
     const name = args.name.trim();
     if (!name) throw errors.invalidInput("Tag name is required");
+    assertMaxLength("Tag name", name, LIMITS.tagName);
+    assertColorName("Tag color", args.color);
 
     const existing = await ctx.db
       .query("tags")

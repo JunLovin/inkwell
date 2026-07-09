@@ -5,11 +5,11 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { $getRoot } from "lexical";
 import { $convertFromMarkdownString, TRANSFORMERS } from "@lexical/markdown";
 
-import type { Id } from "@/convex/_generated/dataModel";
+import type { NoteId } from "../../../domain/entities/note";
 import { useAIChatStore } from "@/modules/ai-chat";
 import { jsonToMarkdown } from "@/lib/lexical";
 
-type Props = { noteId: Id<"notes"> };
+type Props = { noteId: NoteId };
 
 export function InsertAIContentPlugin({ noteId }: Props) {
   const [editor] = useLexicalComposerContext();

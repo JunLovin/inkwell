@@ -65,7 +65,7 @@ describe("createChatService.useSendMessage", () => {
     });
   });
 
-  it("passes a system prompt that reflects the attached note", async () => {
+  it("forwards attached note title and plainText to the repository", async () => {
     const send = vi.fn<(p: SendMessagePayload) => Promise<string>>(
       async () => "ok",
     );
@@ -77,7 +77,27 @@ describe("createChatService.useSendMessage", () => {
       attachedFiles: [],
       attachedNote: { id: "n", title: "t", slug: "s", plainText: "note body" },
     });
-    expect(send.mock.calls[0][0].systemPrompt).toContain("note body");
+    expect(send.mock.calls[0][0].attachedNote).toEqual({
+      title: "t",
+      plainText: "note body",
+    });
+    expect(send.mock.calls[0][0].mode).toBe("chat");
+  });
+
+  it("passes mode=writer when specified", async () => {
+    const send = vi.fn<(p: SendMessagePayload) => Promise<string>>(
+      async () => "ok",
+    );
+    const svc = createChatService(makeRepo(send));
+    const { result } = renderHook(() => svc.useSendMessage());
+    await result.current({
+      history: [],
+      text: "hi",
+      attachedFiles: [],
+      attachedNote: { id: "n", title: "t", slug: "s", plainText: "body" },
+      mode: "writer",
+    });
+    expect(send.mock.calls[0][0].mode).toBe("writer");
   });
 
   it("returns the repo response verbatim", async () => {
